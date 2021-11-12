@@ -57,7 +57,6 @@ public class JobFrameTest {
 	@Test
 	public void test_joinInnerSize() {
 		JobFrame joinFrame = jobFrame.join(otherFrame, "id-id", "inner");
-		joinFrame.
 	}
 
 }
