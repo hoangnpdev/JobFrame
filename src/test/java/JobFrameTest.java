@@ -1,7 +1,10 @@
 
+import com.jobframe.core.Column;
 import com.jobframe.core.JobFrame;
 import org.apache.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -16,7 +19,9 @@ public class JobFrameTest {
 
 	private JobFrame jobFrame;
 
-	@BeforeAll
+	private JobFrame otherFrame;
+
+	@BeforeEach
 	public void beforeA() {
 		List<List<Object>> datas = Arrays.asList(
 				Arrays.asList(1L, "hoang1", 10.0),
@@ -25,12 +30,34 @@ public class JobFrameTest {
 				Arrays.asList(4L, "hoang4", 40.0)
 		);
 		jobFrame = new JobFrame(datas, Arrays.asList("id", "name", "value"));
+
+
+		List<List<Object>> datas2 = Arrays.asList(
+				Arrays.asList(3L, "hoang1", 10.0),
+				Arrays.asList(4L, "hoang2", 20.0),
+				Arrays.asList(5L, "hoang3", 30.0),
+				Arrays.asList(6L, "hoang4", 40.0)
+		);
+		otherFrame = new JobFrame(datas2, Arrays.asList("id", "name", "value"));
 	}
 
+	@Test
 	public void test_getColumnTypeAndSize() {
-
-
+		Column col = jobFrame.getColumn("name");
+		assert col.size() == 4;
+		assert col.type() == String.class;
 	}
 
-	public void 
+	@Test
+	public void test_getValueAt() {
+		Object data = jobFrame.at(0, "name");
+		assert data.equals("hoang1");
+	}
+
+	@Test
+	public void test_joinInnerSize() {
+		JobFrame joinFrame = jobFrame.join(otherFrame, "id-id", "inner");
+		joinFrame.
+	}
+
 }

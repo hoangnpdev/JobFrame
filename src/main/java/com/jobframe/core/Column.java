@@ -13,4 +13,16 @@ public class Column {
 	public void append(Object data) {
 		cells.put(cells.size(), data);
 	}
+
+	public int size() {
+		return cells.size();
+	}
+
+	public Class type() {
+		return cells.get(0).getClass();
+	}
+
+	public Object get(Integer index) {
+		return cells.get(index);
+	}
 }

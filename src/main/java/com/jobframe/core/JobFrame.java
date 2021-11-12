@@ -25,4 +25,8 @@ public class JobFrame {
 	public Column getColumn(String name) {
 		return columnMapper.get(name);
 	}
+
+	public Object at(int rowIndex, String columnName) {
+		return columnMapper.get(columnName).get(rowIndex);
+	}
 }
