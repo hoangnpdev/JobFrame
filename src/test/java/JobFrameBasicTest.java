@@ -2,7 +2,6 @@
 import com.jobframe.core.Column;
 import com.jobframe.core.JobFrame;
 import org.apache.log4j.Logger;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,9 +12,9 @@ import java.util.List;
 
 
 @ExtendWith(MockitoExtension.class)
-public class JobFrameTest {
+public class JobFrameBasicTest {
 
-	private static Logger log = Logger.getLogger(JobFrameTest.class);
+	private static Logger log = Logger.getLogger(JobFrameBasicTest.class);
 
 	private JobFrame jobFrame;
 
@@ -33,10 +32,10 @@ public class JobFrameTest {
 
 
 		List<List<Object>> datas2 = Arrays.asList(
-				Arrays.asList(3L, "hoang1", 10.0),
-				Arrays.asList(4L, "hoang2", 20.0),
-				Arrays.asList(5L, "hoang3", 30.0),
-				Arrays.asList(6L, "hoang4", 40.0)
+				Arrays.asList(3L, "hoang30", 300.0),
+				Arrays.asList(4L, "hoang40", 400.0),
+				Arrays.asList(5L, "hoang50", 500.0),
+				Arrays.asList(6L, "hoang60", 600.0)
 		);
 		otherFrame = new JobFrame(datas2, Arrays.asList("id", "name", "value"));
 	}
@@ -55,8 +54,20 @@ public class JobFrameTest {
 	}
 
 	@Test
+	public void test_eqAndGet() {
+		JobFrame eqFrame = jobFrame.eqAndGet("name", "hoang3");
+		eqFrame.resetIndex();
+		assert eqFrame.at(0, "value").equals(30.0);
+	}
+
+	@Test
 	public void test_joinInnerSize() {
-		JobFrame joinFrame = jobFrame.join(otherFrame, "id-id", "inner");
+//		JobFrame joinFrame = jobFrame.join(
+//				otherFrame,
+//				"id=id",
+//				"inner"
+//		);
+//		assert joinFrame.at()
 	}
 
 }

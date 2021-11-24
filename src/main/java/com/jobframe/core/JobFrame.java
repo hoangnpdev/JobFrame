@@ -3,8 +3,8 @@ package com.jobframe.core;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JobFrame {
 
@@ -22,11 +22,36 @@ public class JobFrame {
 		}
 	}
 
+	public JobFrame(Map<String, Column> data) {
+		columnMapper = data;
+	}
+
 	public Column getColumn(String name) {
 		return columnMapper.get(name);
 	}
 
 	public Object at(int rowIndex, String columnName) {
 		return columnMapper.get(columnName).get(rowIndex);
+	}
+
+	public JobFrame eqAndGet(String columnName, Object value) {
+		Column column = getColumn(columnName);
+		Set<Integer> indexes = column.getIndexes(value);
+		Map<String, Column> data = columnMapper.entrySet()
+				.stream()
+				.collect(
+						Collectors.toMap(
+							entry -> entry.getKey(),
+							entry -> entry.getValue().filterByIndexes(indexes)
+						)
+				);
+		return new JobFrame(data);
+	}
+
+	public void resetIndex() {
+		columnMapper.values()
+				.forEach(column -> {
+			column.resetIndex();
+		});
 	}
 }
