@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Map.Entry;
 
 public class JobFrame {
 
@@ -54,4 +55,38 @@ public class JobFrame {
 			column.resetIndex();
 		});
 	}
+
+	public Map<String, Column> getData() {
+		return columnMapper;
+	}
+
+	public JobFrame join(JobFrame otherFrame, String how, String joinType) {
+		Map<String, Column> joinData = new HashMap<>();
+		if (joinType.equals("inner")) {
+			String[] keyKey = how.split("=");
+			String leftKey = keyKey[0];
+			String rightKey = keyKey[1];
+			Column leftKeyColumn = getColumn(leftKey);
+			Column rightKeyColumn = otherFrame.getColumn(rightKey);
+			List<Entry<Integer, Integer>> innerKeys = leftKeyColumn.getInnerKeyWith(rightKeyColumn);
+
+			List<Integer> rightKeyList = innerKeys.stream().map(Entry::getValue).collect(Collectors.toList());
+			otherFrame.getData().entrySet()
+					.forEach( entry -> {
+						Column column = entry.getValue().generateColumnFromKeys(rightKeyList);
+						joinData.put(entry.getKey(), column);
+					});
+
+			List<Integer> leftKeyList = innerKeys.stream().map(Entry::getKey).collect(Collectors.toList());
+			columnMapper.entrySet()
+					.forEach( entry -> {
+						Column column = entry.getValue().generateColumnFromKeys(leftKeyList);
+						joinData.put(entry.getKey(), column);
+					});
+			return new JobFrame(joinData);
+		}
+		throw new RuntimeException("JoinType invalid Exception");
+	}
+
+
 }

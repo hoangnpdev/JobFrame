@@ -33,6 +33,10 @@ public class Column {
 		return cells.get(index);
 	}
 
+	public Set<Entry<Integer, Object>> entrySet() {
+		return cells.entrySet();
+	}
+
 	public Set<Integer> getIndexes(Object value) {
 		return cells.entrySet()
 				.stream()
@@ -60,5 +64,30 @@ public class Column {
 			newCell.put(idx, data.get(idx));
 		}
 		cells = newCell;
+	}
+
+	public List<Entry<Integer, Integer>> getInnerKeyWith(Column rightKeyColumn) {
+		List<Entry<Integer, Integer>> result = new LinkedList<>();
+
+		Set<Entry<Integer, Object>> leftEntrySet = cells.entrySet();
+		Set<Entry<Integer, Object>> rightEntrySet = rightKeyColumn.cells.entrySet();
+
+		for (Entry<Integer, Object> leftEntry: leftEntrySet) {
+			for (Entry<Integer, Object> rightEntry: rightEntrySet) {
+				if (leftEntry.getValue().equals(rightEntry.getValue())) {
+					result.add(new AbstractMap.SimpleEntry<>(leftEntry.getKey(), rightEntry.getKey()));
+				}
+			}
+		}
+
+		return result;
+	}
+
+	public Column generateColumnFromKeys(List<Integer> indexes) {
+		LinkedHashMap<Integer, Object> newColumnData = new LinkedHashMap<>();
+		for (int newIndex = 0; newIndex < indexes.size(); newIndex ++) {
+			newColumnData.put(newIndex, cells.get(indexes.get(newIndex)));
+		}
+		return new Column(newColumnData);
 	}
 }

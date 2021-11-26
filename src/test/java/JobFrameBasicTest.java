@@ -62,12 +62,15 @@ public class JobFrameBasicTest {
 
 	@Test
 	public void test_joinInnerSize() {
-//		JobFrame joinFrame = jobFrame.join(
-//				otherFrame,
-//				"id=id",
-//				"inner"
-//		);
-//		assert joinFrame.at()
+		JobFrame joinFrame = jobFrame.join(
+				otherFrame,
+				"id=id",
+				"inner"
+		);
+		JobFrame nFrame = joinFrame.eqAndGet("name", "hoang4");
+		nFrame.resetIndex();
+		System.out.println(nFrame.at(0, "value"));
+		assert nFrame.at(0, "value").equals(40.0);
 	}
 
 }
