@@ -56,7 +56,6 @@ public class JobFrameBasicTest {
 	@Test
 	public void test_eqAndGet() {
 		JobFrame eqFrame = jobFrame.eqAndGet("name", "hoang3");
-		eqFrame.resetIndex();
 		assert eqFrame.at(0, "value").equals(30.0);
 	}
 
@@ -68,7 +67,6 @@ public class JobFrameBasicTest {
 				"inner"
 		);
 		JobFrame nFrame = joinFrame.eqAndGet("name", "hoang4");
-		nFrame.resetIndex();
 		System.out.println(nFrame.at(0, "value"));
 		assert nFrame.at(0, "value").equals(40.0);
 	}

@@ -46,7 +46,9 @@ public class JobFrame {
 							entry -> entry.getValue().filterByIndexes(indexes)
 						)
 				);
-		return new JobFrame(data);
+		JobFrame result = new JobFrame(data);
+		result.resetIndex();
+		return result;
 	}
 
 	public void resetIndex() {
