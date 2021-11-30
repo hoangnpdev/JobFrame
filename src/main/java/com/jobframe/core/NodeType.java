@@ -4,7 +4,7 @@ public enum NodeType {
     COLUMN,
     CONSTANT,
     ADD,
-    MINUS,
+    SUB,
     MUL,
     DIV
 }
