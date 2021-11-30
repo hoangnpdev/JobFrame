@@ -1,8 +1,0 @@
-com\jobframe\core\JobFrames.class
-com\jobframe\core\Column.class
-com\jobframe\core\Row.class
-com\jobframe\core\NodeType.class
-com\jobframe\core\Expression.class
-com\jobframe\core\ComputingNode.class
-com\jobframe\core\ExpressionBuilder.class
-com\jobframe\core\JobFrame.class
