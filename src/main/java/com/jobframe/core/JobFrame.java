@@ -1,8 +1,10 @@
 package com.jobframe.core;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 public class JobFrame {
 
@@ -105,8 +107,35 @@ public class JobFrame {
 		return new JobFrame(newData);
 	}
 
+	public JobFrame select(String... columns) {
+		Map<String, Column> newData = new HashMap<>();
+		for (String column: columns) {
+			newData.put(column, columnMapper.get(column));
+		}
+		return new JobFrame(newData);
+	}
+
 	public int size() {
 		Optional<Entry<String, Column>> op = columnMapper.entrySet().stream().findFirst();
 		return op.map(stringColumnEntry -> stringColumnEntry.getValue().size()).orElse(0);
+	}
+
+	public List<String> columns() {
+		return new ArrayList<>(columnMapper.keySet());
+	}
+
+	public JobFrame withColumn(String columnName, Expression expression) {
+		Map<String, Column> newData = new HashMap<>(columnMapper);
+		Column newColumn = new Column();
+		for (int i = 0; i < size(); i ++) {
+			Object value = expression.calculate(getRow(i));
+			newColumn.append(value);
+		}
+		newData.put(columnName, newColumn);
+		return new JobFrame(newData);
+	}
+
+	public JobFrame withColumn(String columnName, Function<Object[], Object> udf, String... columns) {
+		return null;
 	}
 }

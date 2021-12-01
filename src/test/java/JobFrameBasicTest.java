@@ -22,6 +22,8 @@ public class JobFrameBasicTest {
 
 	private JobFrame otherFrame;
 
+	private JobFrame fourFrame;
+
 	@BeforeEach
 	public void beforeA() {
 		List<List<Object>> datas = Arrays.asList(
@@ -40,6 +42,14 @@ public class JobFrameBasicTest {
 				Arrays.asList(6L, "hoang60", 600.0)
 		);
 		otherFrame = new JobFrame(datas2, Arrays.asList("id", "name", "value"));
+
+		List<List<Object>> datas3 = Arrays.asList(
+				Arrays.asList(3L, "hoang30", 300.0, 10),
+				Arrays.asList(4L, "hoang40", 400.0, 5),
+				Arrays.asList(5L, "hoang50", 500.0, 10),
+				Arrays.asList(6L, "hoang60", 600.0, 5)
+		);
+		fourFrame = new JobFrame(datas3, Arrays.asList("id", "name", "value1", "value2"));
 	}
 
 	@Test
@@ -80,6 +90,27 @@ public class JobFrameBasicTest {
 				.or(col("value").equalTo(lit(40.0)))
 		);
 		assert whereFrame.size() == 2;
+	}
+
+	@Test
+	public void test_select() {
+		JobFrame selectFrame = jobFrame.select("name", "value");
+		assert selectFrame.columns().size() == 2;
+	}
+
+	@Test
+	public void test_withColumnExpression() {
+		JobFrame sumFrame = fourFrame.withColumn(
+				"sum",
+				col("value1").add(col("value2"))
+		);
+		assert sumFrame.at(0, "sum").equals(310.0);
+		assert sumFrame.at(3, "sum").equals(605.0);
+	}
+
+	@Test
+	public void test_withColumnUdf() {
+
 	}
 
 }
