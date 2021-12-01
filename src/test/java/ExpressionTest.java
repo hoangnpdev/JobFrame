@@ -58,13 +58,31 @@ public class ExpressionTest {
     @Test
     public void test_multiply() {
         Expression expression = lit(10L).multiply(lit(20L));
-        assert  expression.calculate(null).equals(200L);
+        assert expression.calculate(null).equals(200L);
     }
 
     @Test
     public void test_divide() {
         Expression expression = lit(10L).divide(lit(20L));
         System.out.println(expression.calculate(null));
-        assert  expression.calculate(null).equals(0.5);
+        assert expression.calculate(null).equals(0.5);
+    }
+
+    @Test
+    public void test_and() {
+        Expression expression = lit(true).and(lit(false));
+        assert expression.calculate(null).equals(false);
+    }
+
+    @Test
+    public void test_or() {
+        Expression expression = lit(true).or(lit(false));
+        assert expression.calculate(null).equals(true);
+    }
+
+    @Test
+    public void test_not() {
+        Expression expression = not(lit(false));
+        assert expression.calculate(null).equals(true);
     }
 }

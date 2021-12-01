@@ -6,5 +6,8 @@ public enum NodeType {
     ADD,
     SUB,
     MUL,
-    DIV
+    DIV,
+    AND,
+    OR,
+    NOT
 }

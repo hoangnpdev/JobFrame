@@ -26,4 +26,16 @@ public class CalculatorUtils {
     public static Object divide(Object value1, Object value2) {
         return TypeUtils.toDouble(value1) / TypeUtils.toDouble(value2);
     }
+
+    public static Object and(Object value1, Object value2) {
+        return (boolean) value1 && (boolean) value2;
+    }
+
+    public static Object or(Object value1, Object value2) {
+        return (boolean) value1 || (boolean) value2;
+    }
+
+    public static Object not(Object value1) {
+        return ! (boolean) value1;
+    }
 }

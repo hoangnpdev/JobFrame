@@ -9,4 +9,10 @@ public class ExpressionBuilder {
     public static Expression col(String columnName) {
         return new Expression(columnName);
     }
+
+    public static Expression not(Expression expression) {
+        ComputingNode newRoot = new ComputingNode(null, NodeType.NOT);
+        newRoot.setLeft(expression.getRoot());
+        return new Expression(newRoot);
+    }
 }
