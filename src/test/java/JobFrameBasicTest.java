@@ -110,7 +110,12 @@ public class JobFrameBasicTest {
 
 	@Test
 	public void test_withColumnUdf() {
-
+		JobFrame udfFrame = fourFrame.withColumn(
+				"result",
+				(double a, long b) -> {
+					return a / (b * b);
+				}, "value1", "value2"
+		);
 	}
 
 }

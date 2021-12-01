@@ -1,5 +1,7 @@
 package com.jobframe.core;
 
+import com.jobframe.udf.define.UDFx;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -135,7 +137,7 @@ public class JobFrame {
 		return new JobFrame(newData);
 	}
 
-	public JobFrame withColumn(String columnName, Function<Object[], Object> udf, String... columns) {
+	public JobFrame withColumn(String columnName, UDFx<Object, Object> udf, String... columns) {
 		return null;
 	}
 }
