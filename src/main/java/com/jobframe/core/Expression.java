@@ -23,6 +23,9 @@ public class Expression {
         if (type.equals(NodeType.CONSTANT)) {
             return node.getData();
         }
+        if (type.equals(NodeType.COLUMN)) {
+            return row.getField(node.getData().toString());
+        }
         if (type.equals(NodeType.ADD)) {
             return CalculatorUtils.add(computeNode(node.left(), row), computeNode(node.right(), row));
         }

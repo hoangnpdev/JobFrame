@@ -90,5 +90,11 @@ public class JobFrame {
 		throw new RuntimeException("JoinType invalid Exception");
 	}
 
-
+	public Row getRow(int index) {
+		Map<String, Object> rData = new HashMap<>();
+		columnMapper.entrySet().forEach(entry -> {
+			rData.put(entry.getKey(), entry.getValue().get(index));
+		});
+		return new Row(rData);
+	}
 }
