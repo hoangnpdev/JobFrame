@@ -9,5 +9,6 @@ public enum NodeType {
     DIV,
     AND,
     OR,
-    NOT
+    NOT,
+    EQUAL
 }

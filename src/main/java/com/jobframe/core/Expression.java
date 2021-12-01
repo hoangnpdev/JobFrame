@@ -51,6 +51,9 @@ public class Expression {
         if (type.equals(NodeType.NOT)) {
             return CalculatorUtils.not(computeNode(node.left(), row));
         }
+        if (type.equals(NodeType.EQUAL)) {
+            return computeNode(node.left(), row).equals(computeNode(node.right(), row));
+        }
         throw new RuntimeException("NodeType not found Exception: " + node.getType());
     }
 
@@ -101,6 +104,14 @@ public class Expression {
 
     public Expression or(Expression expression) {
         ComputingNode newRoot = new ComputingNode(null, NodeType.OR);
+        newRoot.setLeft(root);
+        newRoot.setRight(expression.getRoot());
+        root = newRoot;
+        return this;
+    }
+
+    public Expression equalTo(Expression expression) {
+        ComputingNode newRoot = new ComputingNode(null, NodeType.EQUAL);
         newRoot.setLeft(root);
         newRoot.setRight(expression.getRoot());
         root = newRoot;

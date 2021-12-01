@@ -10,6 +10,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.jobframe.core.ExpressionBuilder.*;
+
 
 @ExtendWith(MockitoExtension.class)
 public class JobFrameBasicTest {
@@ -69,6 +71,15 @@ public class JobFrameBasicTest {
 		JobFrame nFrame = joinFrame.eqAndGet("name", "hoang4");
 		System.out.println(nFrame.at(0, "value"));
 		assert nFrame.at(0, "value").equals(40.0);
+	}
+
+	@Test
+	public void test_where() {
+		JobFrame whereFrame = jobFrame.where(
+				col("name").equalTo(lit("hoang2"))
+				.or(col("value").equalTo(lit(40.0)))
+		);
+		assert whereFrame.size() == 2;
 	}
 
 }
