@@ -24,6 +24,8 @@ public class JobFrameBasicTest {
 
 	private JobFrame fourFrame;
 
+	private JobFrame grFrame;
+
 	@BeforeEach
 	public void beforeA() {
 		List<List<Object>> datas = Arrays.asList(
@@ -50,6 +52,16 @@ public class JobFrameBasicTest {
 				Arrays.asList(6L, "hoang60", 600.0, 5)
 		);
 		fourFrame = new JobFrame(datas3, Arrays.asList("id", "name", "value1", "value2"));
+
+		List<List<Object>> grData = Arrays.asList(
+				Arrays.asList(3L, "hoang30", 300.0, 10),
+				Arrays.asList(4L, "hoang40", 400.0, 5),
+				Arrays.asList(5L, "hoang50", 500.0, 10),
+				Arrays.asList(6L, "hoang60", 600.0, 5),
+				Arrays.asList(7L, "hoang60", 400.0, 5),
+				Arrays.asList(8L, "hoang60", 200.0, 5)
+		);
+		grFrame = new JobFrame(grData, Arrays.asList("id", "name", "value1", "value2"));
 	}
 
 	@Test
@@ -109,13 +121,16 @@ public class JobFrameBasicTest {
 	}
 
 	@Test
-	public void test_withColumnUdf() {
-		JobFrame udfFrame = fourFrame.withColumn(
-				"result",
-				(double a, long b) -> {
-					return a / (b * b);
-				}, "value1", "value2"
-		);
+	public void test_groupByOneColumn() {
+		JobFrame groupedFrame = grFrame.groupBy("name")
+				.sum("value1");
+		assert groupedFrame.where(
+					col("name").equalTo(lit("hoang60"))
+				).at(0, "value1").equals(1200.0);
 	}
 
+	@Test
+	public void test_groupByMultiColumn() {
+
+	}
 }

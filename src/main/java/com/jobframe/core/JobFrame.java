@@ -1,12 +1,8 @@
 package com.jobframe.core;
 
-import com.jobframe.udf.define.UDFx;
-
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Map.Entry;
-import java.util.stream.Stream;
 
 public class JobFrame {
 
@@ -137,7 +133,15 @@ public class JobFrame {
 		return new JobFrame(newData);
 	}
 
-	public JobFrame withColumn(String columnName, UDFx<Object, Object> udf, String... columns) {
-		return null;
+	public JobFrameGroup groupBy(String columnName) {
+		Map<Object, List<Integer>> groupedInfo = new HashMap<>();
+		Column column = columnMapper.get(columnName);
+		column.entrySet().forEach(entry -> {
+			Object value = entry.getValue();
+			List<Integer> grList = groupedInfo.getOrDefault(value, new LinkedList<>());
+			grList.add(entry.getKey());
+			groupedInfo.put(value, grList);
+		});
+		return new JobFrameGroup(columnName, groupedInfo, this);
 	}
 }

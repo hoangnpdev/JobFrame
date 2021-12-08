@@ -1,5 +1,5 @@
 package com.jobframe.udf.define;
 
-public interface UDFx<T, R> {
-    R apply(T... args);
+public interface UDFx<T1, R> {
+    R apply(T1 args);
 }

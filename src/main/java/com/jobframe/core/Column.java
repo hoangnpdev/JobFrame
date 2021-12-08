@@ -90,4 +90,8 @@ public class Column {
 		}
 		return new Column(newColumnData);
 	}
+
+	public Collection<Object> values() {
+		return cells.values();
+	}
 }
