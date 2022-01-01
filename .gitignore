@@ -1,5 +1,5 @@
 
 target/
 target/test-classes/JobFrameBasicTest.class
-*.xml
+.idea/
 target/maven-status/maven-compiler-plugin/compile/default-compile/createdFiles.lst

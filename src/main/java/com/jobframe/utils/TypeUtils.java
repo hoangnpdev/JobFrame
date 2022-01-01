@@ -20,5 +20,9 @@ public class TypeUtils {
         throw new RuntimeException("value is not instance of Number type");
     }
 
+    public static boolean isAlwaysTrue() {
+        return true;
+    }
+
 
 }
