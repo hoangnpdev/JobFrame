@@ -56,7 +56,7 @@ public class JobFrameBasicTest {
 		List<List<Object>> grData = Arrays.asList(
 				Arrays.asList(3L, "hoang30", 300.0, 10),
 				Arrays.asList(4L, "hoang40", 400.0, 5),
-				Arrays.asList(5L, "hoang50", 500.0, 10),
+				Arrays.asList(4L, "hoang40", 500.0, 10),
 				Arrays.asList(6L, "hoang60", 600.0, 5),
 				Arrays.asList(7L, "hoang60", 400.0, 5),
 				Arrays.asList(8L, "hoang60", 200.0, 5)
@@ -132,5 +132,27 @@ public class JobFrameBasicTest {
 	@Test
 	public void test_groupByMultiColumn() {
 
+	}
+
+	@Test
+	public void test_UDF1() {
+		JobFrame udfFrame = jobFrame.withColumn("udf_column", (Double v) -> v * v, "value");
+		assert udfFrame.at(0, "udf_column").equals(100.0);
+	}
+
+	@Test
+	public void test_UDF2() {
+		JobFrame udfFrame = jobFrame.withColumn("udf_column", (Long c1, Double c2) -> c1 * c2, "id", "value");
+		assert udfFrame.at(2, "udf_column").equals(90.0);
+	}
+
+	@Test
+	public void test_UDF3() {
+		JobFrame udfFrame = jobFrame.withColumn(
+				"udf_column",
+				(Long c1, String c2, Double c3) -> c1 * c2.length() * c3,
+				"id", "name", "value"
+		);
+		assert udfFrame.at(3, "udf_column").equals(960.0);
 	}
 }

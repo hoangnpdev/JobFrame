@@ -1,5 +1,9 @@
 package com.jobframe.core;
 
+import com.jobframe.udf.define.UDF1;
+import com.jobframe.udf.define.UDF2;
+import com.jobframe.udf.define.UDF3;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.Map.Entry;
@@ -133,6 +137,52 @@ public class JobFrame {
 		return new JobFrame(newData);
 	}
 
+	public <T1, R> JobFrame withColumn(String columnName, UDF1<T1, R> udf, String inputColumn) {
+		Map<String, Column> newData = new HashMap<>(columnMapper);
+		Column newColumn = new Column();
+		for (int i = 0; i < size(); i ++) {
+			Row row = getRow(i);
+			Object value = udf.apply((T1) row.getField(inputColumn));
+			newColumn.append(value);
+		}
+		newData.put(columnName, newColumn);
+		return new JobFrame(newData);
+
+	}
+
+	public <T1, T2, R> JobFrame withColumn(String columnName, UDF2<T1, T2, R> udf, String... inputColumns) {
+		Map<String, Column> newData = new HashMap<>(columnMapper);
+		Column newColumn = new Column();
+		for (int i = 0; i < size(); i ++) {
+			Row row = getRow(i);
+			Object value = udf.apply(
+					(T1) row.getField(inputColumns[0]),
+					(T2) row.getField(inputColumns[1])
+			);
+			newColumn.append(value);
+		}
+		newData.put(columnName, newColumn);
+		return new JobFrame(newData);
+
+	}
+
+	public <T1, T2, T3, R> JobFrame withColumn(String columnName, UDF3<T1, T2, T3, R> udf, String... inputColumns) {
+		Map<String, Column> newData = new HashMap<>(columnMapper);
+		Column newColumn = new Column();
+		for (int i = 0; i < size(); i ++) {
+			Row row = getRow(i);
+			Object value = udf.apply(
+					(T1) row.getField(inputColumns[0]),
+					(T2) row.getField(inputColumns[1]),
+					(T3) row.getField(inputColumns[2])
+			);
+			newColumn.append(value);
+		}
+		newData.put(columnName, newColumn);
+		return new JobFrame(newData);
+
+	}
+
 	public JobFrameGroup groupBy(String columnName) {
 		Map<Object, List<Integer>> groupedInfo = new HashMap<>();
 		Column column = columnMapper.get(columnName);
@@ -144,4 +194,6 @@ public class JobFrame {
 		});
 		return new JobFrameGroup(columnName, groupedInfo, this);
 	}
+
+
 }
