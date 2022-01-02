@@ -95,6 +95,7 @@ public class JobFrame {
 		return new Row(rData);
 	}
 
+
 	public JobFrame where(Expression expression) {
 		List<Integer> newIndexList = new LinkedList<>();
 		for (int i = 0; i < size(); i ++) {
@@ -183,17 +184,29 @@ public class JobFrame {
 
 	}
 
-	public JobFrameGroup groupBy(String columnName) {
-		Map<Object, List<Integer>> groupedInfo = new HashMap<>();
-		Column column = columnMapper.get(columnName);
-		column.entrySet().forEach(entry -> {
-			Object value = entry.getValue();
-			List<Integer> grList = groupedInfo.getOrDefault(value, new LinkedList<>());
-			grList.add(entry.getKey());
-			groupedInfo.put(value, grList);
-		});
+	public JobFrameGroup groupBy(String... columnName) {
+		Map<List<Object>, List<Integer>> groupedInfo = new HashMap<>();
+		for (int i = 0; i < size(); i ++) {
+
+			// generate key
+			Row row = getRow(i);
+			List<Object> key = new ArrayList<>();
+			for (String c: columnName) {
+				key.add(row.getField(c));
+			}
+
+			// group index
+			List<Integer> grList = groupedInfo.getOrDefault(key, new LinkedList<>());
+			grList.add(i);
+			groupedInfo.put(key, grList);
+		}
+
 		return new JobFrameGroup(columnName, groupedInfo, this);
 	}
+
+//	public JobFrameGroup groupBy(String... columnNames) {
+//
+//	}
 
 
 }

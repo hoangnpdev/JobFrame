@@ -8,28 +8,33 @@ import java.util.stream.Collectors;
 
 public class JobFrameGroup {
 
-    private String groupedColumn;
+    private String[] groupedColumns;
 
-    private Map<Object, List<Integer>> groupedInfo;
+    private Map<List<Object>, List<Integer>> groupedInfo;
 
     private final JobFrame originalFrame;
 
-    public JobFrameGroup(String groupedColumn, Map<Object, List<Integer>> groupedInfo, JobFrame frame) {
-        this.groupedColumn = groupedColumn;
+    public JobFrameGroup(String[] groupedColumns, Map<List<Object>, List<Integer>> groupedInfo, JobFrame frame) {
+        this.groupedColumns = groupedColumns;
         this.groupedInfo = groupedInfo;
         originalFrame = frame;
     }
 
     public JobFrame sum(String columnName) {
         Map<String, Column> newData = new HashMap<>();
-        newData.put(groupedColumn, new Column());
+        for (String gc: groupedColumns) {
+            newData.put(gc, new Column());
+        }
         newData.put(columnName, new Column());
 
-        List<Entry<Object, List<Integer>>> entrySet = new ArrayList<>(groupedInfo.entrySet());
+        List<Entry<List<Object>, List<Integer>>> entrySet = new ArrayList<>(groupedInfo.entrySet());
 
         for (int i = 0; i < entrySet.size(); i ++ ) {
-            Entry<Object, List<Integer>> entry = entrySet.get(i);
-            newData.get(groupedColumn).append(entry.getKey());
+            Entry<List<Object>, List<Integer>> entry = entrySet.get(i);
+            for (int kid = 0; kid < entry.getKey().size(); kid ++) {
+                Object v = entry.getKey().get(kid);
+                newData.get(groupedColumns[kid]).append(v);
+            }
 
             newData.get(columnName).append(
                 CalculatorUtils.sum(

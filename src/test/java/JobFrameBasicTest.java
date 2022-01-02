@@ -131,7 +131,11 @@ public class JobFrameBasicTest {
 
 	@Test
 	public void test_groupByMultiColumn() {
-
+		JobFrame groupedFrame = grFrame.groupBy("id", "name")
+				.sum("value1");
+		assert  groupedFrame.where(
+				col("name").equalTo(lit("hoang40"))
+		).at(0, "value1").equals(900.0);
 	}
 
 	@Test
