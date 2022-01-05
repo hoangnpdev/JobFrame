@@ -204,9 +204,8 @@ public class JobFrame {
 		return new JobFrameGroup(columnName, groupedInfo, this);
 	}
 
-//	public JobFrameGroup groupBy(String... columnNames) {
-//
-//	}
-
+	public static class JobFrameData {
+		private Map<String, Column> columnMapper;
+	}
 
 }
