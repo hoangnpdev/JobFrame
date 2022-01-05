@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Map.Entry;
@@ -15,7 +16,7 @@ public class JobFrame {
 
 	private JobFrameData jobFrameData;
 
-	private Function<JobFrameData, JobFrameData> transform = (JobFrameData data) -> data;
+	private BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData self, JobFrameData other) -> self;
 
 	@Setter
 	@Getter
@@ -58,9 +59,13 @@ public class JobFrame {
 	private JobFrameData execute() {
 		JobFrameData result;
 		if (parent == null) {
-			result = transform.apply(this.jobFrameData);
+			result = transform.apply(this.jobFrameData, null);
 		} else {
-			result = transform.apply(this.parent.execute());
+			if (other == null) {
+				result = transform.apply(this.parent.execute(), null);
+			} else {
+				result = transform.apply(this.parent.execute(), this.other.execute());
+			}
 		}
 		return result;
 	}
@@ -93,7 +98,7 @@ public class JobFrame {
 	 */
 	public JobFrame eqAndGet(String columnName, Object value) {
 		JobFrame newJobFrame = new JobFrame();
-		Function<JobFrameData, JobFrameData> transform = (JobFrameData jobFrameData) -> {
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
 			Column column = jobFrameData.getColumn(columnName);
 			Set<Integer> indexes = column.getIndexes(value);
 			Map<String, Column> data = jobFrameData.getColumnMapper().entrySet()
