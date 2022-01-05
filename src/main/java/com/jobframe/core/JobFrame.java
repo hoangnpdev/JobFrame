@@ -5,12 +5,15 @@ import com.jobframe.udf.define.UDF2;
 import com.jobframe.udf.define.UDF3;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Map.Entry;
 
 public class JobFrame {
 
 	private Map<String, Column> columnMapper;
+
+	private Function<JobFrame, JobFrame> transform;
 
 	public JobFrame(List<List<Object>> datas, List<String> columnNames) {
 		columnMapper = new HashMap<>();
