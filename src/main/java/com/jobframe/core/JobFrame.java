@@ -10,36 +10,36 @@ import java.util.Map.Entry;
 
 public class JobFrame {
 
-	private Map<String, Column> columnMapper;
+	private JobFrameData jobFrameData;
 
 	public JobFrame(List<List<Object>> datas, List<String> columnNames) {
-		columnMapper = new HashMap<>();
+		jobFrameData = new JobFrameData();
 		for (String columnName: columnNames) {
-			columnMapper.put(columnName, new Column());
+			jobFrameData.addColumn(columnName);
 		}
 		for (List<Object> data: datas) {
 			for (int i = 0; i < columnNames.size(); i++) {
-				columnMapper.get(columnNames.get(i)).append(data.get(i));
+				jobFrameData.getColumn(columnNames.get(i)).append(data.get(i));
 			}
 		}
 	}
 
 	public JobFrame(Map<String, Column> data) {
-		columnMapper = data;
+		this.jobFrameData = new JobFrameData(data);
 	}
 
 	public Column getColumn(String name) {
-		return columnMapper.get(name);
+		return jobFrameData.getColumn(name);
 	}
 
 	public Object at(int rowIndex, String columnName) {
-		return columnMapper.get(columnName).get(rowIndex);
+		return jobFrameData.getColumn(columnName).get(rowIndex);
 	}
 
 	public JobFrame eqAndGet(String columnName, Object value) {
 		Column column = getColumn(columnName);
 		Set<Integer> indexes = column.getIndexes(value);
-		Map<String, Column> data = columnMapper.entrySet()
+		Map<String, Column> data = jobFrameData.getColumnMapper().entrySet()
 				.stream()
 				.collect(
 						Collectors.toMap(
@@ -53,12 +53,12 @@ public class JobFrame {
 	}
 
 	public void resetIndex() {
-		columnMapper.values()
+		jobFrameData.getColumnMapper().values()
 				.forEach(Column::resetIndex);
 	}
 
 	public Map<String, Column> getData() {
-		return columnMapper;
+		return jobFrameData.getColumnMapper();
 	}
 
 	public JobFrame join(JobFrame otherFrame, String how, String joinType) {
@@ -79,7 +79,7 @@ public class JobFrame {
 			});
 
 			List<Integer> leftKeyList = innerKeys.stream().map(Entry::getKey).collect(Collectors.toList());
-			columnMapper.forEach((key, value) -> {
+			jobFrameData.getColumnMapper().forEach((key, value) -> {
 				Column column = value.generateColumnFromKeys(leftKeyList);
 				joinData.put(key, column);
 			});
@@ -91,7 +91,7 @@ public class JobFrame {
 
 	public Row getRow(int index) {
 		Map<String, Object> rData = new HashMap<>();
-		columnMapper.forEach((key, value) -> rData.put(key, value.get(index)));
+		jobFrameData.getColumnMapper().forEach((key, value) -> rData.put(key, value.get(index)));
 		return new Row(rData);
 	}
 
@@ -104,7 +104,7 @@ public class JobFrame {
 			}
 		}
 		Map<String, Column> newData = new HashMap<>();
-		columnMapper.forEach((key, value) -> {
+		jobFrameData.getColumnMapper().forEach((key, value) -> {
 			newData.put(key, value.generateColumnFromKeys(newIndexList));
 		});
 		return new JobFrame(newData);
@@ -113,22 +113,22 @@ public class JobFrame {
 	public JobFrame select(String... columns) {
 		Map<String, Column> newData = new HashMap<>();
 		for (String column: columns) {
-			newData.put(column, columnMapper.get(column));
+			newData.put(column, jobFrameData.getColumnMapper().get(column));
 		}
 		return new JobFrame(newData);
 	}
 
 	public int size() {
-		Optional<Entry<String, Column>> op = columnMapper.entrySet().stream().findFirst();
+		Optional<Entry<String, Column>> op = jobFrameData.getColumnMapper().entrySet().stream().findFirst();
 		return op.map(stringColumnEntry -> stringColumnEntry.getValue().size()).orElse(0);
 	}
 
 	public List<String> columns() {
-		return new ArrayList<>(columnMapper.keySet());
+		return new ArrayList<>(jobFrameData.getColumnMapper().keySet());
 	}
 
 	public JobFrame withColumn(String columnName, Expression expression) {
-		Map<String, Column> newData = new HashMap<>(columnMapper);
+		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
 		Column newColumn = new Column();
 		for (int i = 0; i < size(); i ++) {
 			Object value = expression.calculate(getRow(i));
@@ -139,7 +139,7 @@ public class JobFrame {
 	}
 
 	public <T1, R> JobFrame withColumn(String columnName, UDF1<T1, R> udf, String inputColumn) {
-		Map<String, Column> newData = new HashMap<>(columnMapper);
+		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
 		Column newColumn = new Column();
 		for (int i = 0; i < size(); i ++) {
 			Row row = getRow(i);
@@ -152,7 +152,7 @@ public class JobFrame {
 	}
 
 	public <T1, T2, R> JobFrame withColumn(String columnName, UDF2<T1, T2, R> udf, String... inputColumns) {
-		Map<String, Column> newData = new HashMap<>(columnMapper);
+		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
 		Column newColumn = new Column();
 		for (int i = 0; i < size(); i ++) {
 			Row row = getRow(i);
@@ -168,7 +168,7 @@ public class JobFrame {
 	}
 
 	public <T1, T2, T3, R> JobFrame withColumn(String columnName, UDF3<T1, T2, T3, R> udf, String... inputColumns) {
-		Map<String, Column> newData = new HashMap<>(columnMapper);
+		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
 		Column newColumn = new Column();
 		for (int i = 0; i < size(); i ++) {
 			Row row = getRow(i);
@@ -202,10 +202,6 @@ public class JobFrame {
 		}
 
 		return new JobFrameGroup(columnName, groupedInfo, this);
-	}
-
-	public static class JobFrameData {
-		private Map<String, Column> columnMapper;
 	}
 
 }
