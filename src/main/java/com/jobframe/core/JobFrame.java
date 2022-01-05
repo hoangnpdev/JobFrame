@@ -3,8 +3,11 @@ package com.jobframe.core;
 import com.jobframe.udf.define.UDF1;
 import com.jobframe.udf.define.UDF2;
 import com.jobframe.udf.define.UDF3;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Map.Entry;
 
@@ -12,6 +15,22 @@ public class JobFrame {
 
 	private JobFrameData jobFrameData;
 
+	private Function<JobFrameData, JobFrameData> transform = (JobFrameData data) -> data;
+
+	@Setter
+	@Getter
+	private JobFrame parent;
+
+	@Getter
+	@Setter
+	private JobFrame other;
+
+
+	/**
+	 * temp eager
+	 * @param datas
+	 * @param columnNames
+	 */
 	public JobFrame(List<List<Object>> datas, List<String> columnNames) {
 		jobFrameData = new JobFrameData();
 		for (String columnName: columnNames) {
@@ -24,43 +43,92 @@ public class JobFrame {
 		}
 	}
 
+	/**
+	 * temp eager
+	 * @param data
+	 */
 	public JobFrame(Map<String, Column> data) {
 		this.jobFrameData = new JobFrameData(data);
 	}
 
+	private JobFrame() {
+	}
+
+
+	private JobFrameData execute() {
+		JobFrameData result;
+		if (parent == null) {
+			result = transform.apply(this.jobFrameData);
+		} else {
+			result = transform.apply(this.parent.execute());
+		}
+		return result;
+	}
+
+	/**
+	 * eager
+	 * @param name
+	 * @return
+	 */
 	public Column getColumn(String name) {
 		return jobFrameData.getColumn(name);
 	}
 
+	/**
+	 * eager
+	 * @param rowIndex
+	 * @param columnName
+	 * @return
+	 */
 	public Object at(int rowIndex, String columnName) {
-		return jobFrameData.getColumn(columnName).get(rowIndex);
+		JobFrameData result = execute();
+		return result.getColumn(columnName).get(rowIndex);
 	}
 
+	/**
+	 * lazy
+	 * @param columnName
+	 * @param value
+	 * @return
+	 */
 	public JobFrame eqAndGet(String columnName, Object value) {
-		Column column = getColumn(columnName);
-		Set<Integer> indexes = column.getIndexes(value);
-		Map<String, Column> data = jobFrameData.getColumnMapper().entrySet()
-				.stream()
-				.collect(
-						Collectors.toMap(
-								Entry::getKey,
-							entry -> entry.getValue().filterByIndexes(indexes)
-						)
-				);
-		JobFrame result = new JobFrame(data);
-		result.resetIndex();
-		return result;
+		JobFrame newJobFrame = new JobFrame();
+		Function<JobFrameData, JobFrameData> transform = (JobFrameData jobFrameData) -> {
+			Column column = jobFrameData.getColumn(columnName);
+			Set<Integer> indexes = column.getIndexes(value);
+			Map<String, Column> data = jobFrameData.getColumnMapper().entrySet()
+					.stream()
+					.collect(
+							Collectors.toMap(
+									Entry::getKey,
+								entry -> entry.getValue().filterByIndexes(indexes)
+							)
+					);
+			JobFrameData result = new JobFrameData(data);
+			result.resetIndex();
+			return result;
+		};
+		newJobFrame.setParent(this);
+		newJobFrame.transform = transform;
+
+		return newJobFrame;
 	}
 
-	public void resetIndex() {
-		jobFrameData.getColumnMapper().values()
-				.forEach(Column::resetIndex);
-	}
-
-	public Map<String, Column> getData() {
+	/**
+	 * eager
+	 * @return
+	 */
+	private Map<String, Column> getData() {
 		return jobFrameData.getColumnMapper();
 	}
 
+	/**
+	 * lazy
+	 * @param otherFrame
+	 * @param how
+	 * @param joinType
+	 * @return
+	 */
 	public JobFrame join(JobFrame otherFrame, String how, String joinType) {
 		Map<String, Column> joinData = new HashMap<>();
 		if (joinType.equals("inner")) {
@@ -89,6 +157,11 @@ public class JobFrame {
 		throw new RuntimeException("JoinType invalid Exception");
 	}
 
+	/**
+	 * eager
+	 * @param index
+	 * @return
+	 */
 	public Row getRow(int index) {
 		Map<String, Object> rData = new HashMap<>();
 		jobFrameData.getColumnMapper().forEach((key, value) -> rData.put(key, value.get(index)));
@@ -96,6 +169,11 @@ public class JobFrame {
 	}
 
 
+	/**
+	 * lazy
+	 * @param expression
+	 * @return
+	 */
 	public JobFrame where(Expression expression) {
 		List<Integer> newIndexList = new LinkedList<>();
 		for (int i = 0; i < size(); i ++) {
@@ -110,6 +188,11 @@ public class JobFrame {
 		return new JobFrame(newData);
 	}
 
+	/**
+	 * lazy
+	 * @param columns
+	 * @return
+	 */
 	public JobFrame select(String... columns) {
 		Map<String, Column> newData = new HashMap<>();
 		for (String column: columns) {
@@ -118,15 +201,29 @@ public class JobFrame {
 		return new JobFrame(newData);
 	}
 
+	/**
+	 * eager
+	 * @return
+	 */
 	public int size() {
 		Optional<Entry<String, Column>> op = jobFrameData.getColumnMapper().entrySet().stream().findFirst();
 		return op.map(stringColumnEntry -> stringColumnEntry.getValue().size()).orElse(0);
 	}
 
+	/**
+	 * eager
+	 * @return
+	 */
 	public List<String> columns() {
 		return new ArrayList<>(jobFrameData.getColumnMapper().keySet());
 	}
 
+	/**
+	 * lazy
+	 * @param columnName
+	 * @param expression
+	 * @return
+	 */
 	public JobFrame withColumn(String columnName, Expression expression) {
 		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
 		Column newColumn = new Column();
@@ -138,6 +235,15 @@ public class JobFrame {
 		return new JobFrame(newData);
 	}
 
+	/**
+	 * lazy
+	 * @param columnName
+	 * @param udf
+	 * @param inputColumn
+	 * @param <T1>
+	 * @param <R>
+	 * @return
+	 */
 	public <T1, R> JobFrame withColumn(String columnName, UDF1<T1, R> udf, String inputColumn) {
 		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
 		Column newColumn = new Column();
@@ -151,6 +257,16 @@ public class JobFrame {
 
 	}
 
+	/**
+	 * lazy
+	 * @param columnName
+	 * @param udf
+	 * @param inputColumns
+	 * @param <T1>
+	 * @param <T2>
+	 * @param <R>
+	 * @return
+	 */
 	public <T1, T2, R> JobFrame withColumn(String columnName, UDF2<T1, T2, R> udf, String... inputColumns) {
 		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
 		Column newColumn = new Column();
@@ -167,6 +283,17 @@ public class JobFrame {
 
 	}
 
+	/**
+	 * lazy
+	 * @param columnName
+	 * @param udf
+	 * @param inputColumns
+	 * @param <T1>
+	 * @param <T2>
+	 * @param <T3>
+	 * @param <R>
+	 * @return
+	 */
 	public <T1, T2, T3, R> JobFrame withColumn(String columnName, UDF3<T1, T2, T3, R> udf, String... inputColumns) {
 		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
 		Column newColumn = new Column();
@@ -184,6 +311,11 @@ public class JobFrame {
 
 	}
 
+	/**
+	 * lazy
+	 * @param columnName
+	 * @return
+	 */
 	public JobFrameGroup groupBy(String... columnName) {
 		Map<List<Object>, List<Integer>> groupedInfo = new HashMap<>();
 		for (int i = 0; i < size(); i ++) {

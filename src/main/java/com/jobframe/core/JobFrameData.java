@@ -30,4 +30,9 @@ public class JobFrameData {
 	public void setColumnMapper(Map<String, Column> columnMapper) {
 		this.columnMapper = columnMapper;
 	}
+
+	public void resetIndex() {
+		columnMapper.values()
+				.forEach(Column::resetIndex);
+	}
 }

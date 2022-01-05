@@ -20,6 +20,11 @@ public class JobFrameGroup {
         originalFrame = frame;
     }
 
+    /**
+     * lazy
+     * @param columnName
+     * @return
+     */
     public JobFrame sum(String columnName) {
         Map<String, Column> newData = new HashMap<>();
         for (String gc: groupedColumns) {
