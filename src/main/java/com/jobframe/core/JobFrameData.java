@@ -35,4 +35,10 @@ public class JobFrameData {
 		columnMapper.values()
 				.forEach(Column::resetIndex);
 	}
+
+	public Row getRow(int index) {
+		Map<String, Object> rData = new HashMap<>();
+		columnMapper.forEach((key, value) -> rData.put(key, value.get(index)));
+		return new Row(rData);
+	}
 }

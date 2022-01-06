@@ -99,9 +99,9 @@ public class JobFrame {
 	public JobFrame eqAndGet(String columnName, Object value) {
 		JobFrame newJobFrame = new JobFrame();
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
-			Column column = jobFrameData.getColumn(columnName);
+			Column column = d1.getColumn(columnName);
 			Set<Integer> indexes = column.getIndexes(value);
-			Map<String, Column> data = jobFrameData.getColumnMapper().entrySet()
+			Map<String, Column> data = d1.getColumnMapper().entrySet()
 					.stream()
 					.collect(
 							Collectors.toMap(
@@ -135,29 +135,36 @@ public class JobFrame {
 	 * @return
 	 */
 	public JobFrame join(JobFrame otherFrame, String how, String joinType) {
-		Map<String, Column> joinData = new HashMap<>();
+		JobFrame newJobFrame = new JobFrame();
+
 		if (joinType.equals("inner")) {
 
-			String[] keyKey = how.split("=");
-			String leftKey = keyKey[0];
-			String rightKey = keyKey[1];
-			Column leftKeyColumn = getColumn(leftKey);
-			Column rightKeyColumn = otherFrame.getColumn(rightKey);
-			List<Entry<Integer, Integer>> innerKeys = leftKeyColumn.getInnerKeyWith(rightKeyColumn);
+			BiFunction<JobFrameData, JobFrameData, JobFrameData> tranform = (JobFrameData d1, JobFrameData d2) -> {
+				Map<String, Column> joinData = new HashMap<>();
+				String[] keyKey = how.split("=");
+				String leftKey = keyKey[0];
+				String rightKey = keyKey[1];
+				Column leftKeyColumn = d1.getColumn(leftKey);
+				Column rightKeyColumn = d2.getColumn(rightKey);
+				List<Entry<Integer, Integer>> innerKeys = leftKeyColumn.getInnerKeyWith(rightKeyColumn);
 
-			List<Integer> rightKeyList = innerKeys.stream().map(Entry::getValue).collect(Collectors.toList());
-			otherFrame.getData().forEach((key, value) -> {
-				Column column = value.generateColumnFromKeys(rightKeyList);
-				joinData.put(key, column);
-			});
+				List<Integer> rightKeyList = innerKeys.stream().map(Entry::getValue).collect(Collectors.toList());
+				d2.getColumnMapper().forEach((key, value) -> {
+					Column column = value.generateColumnFromKeys(rightKeyList);
+					joinData.put(key, column);
+				});
 
-			List<Integer> leftKeyList = innerKeys.stream().map(Entry::getKey).collect(Collectors.toList());
-			jobFrameData.getColumnMapper().forEach((key, value) -> {
-				Column column = value.generateColumnFromKeys(leftKeyList);
-				joinData.put(key, column);
-			});
-
-			return new JobFrame(joinData);
+				List<Integer> leftKeyList = innerKeys.stream().map(Entry::getKey).collect(Collectors.toList());
+				d1.getColumnMapper().forEach((key, value) -> {
+					Column column = value.generateColumnFromKeys(leftKeyList);
+					joinData.put(key, column);
+				});
+				return new JobFrameData(joinData);
+			};
+			newJobFrame.setParent(this);
+			newJobFrame.setOther(otherFrame);
+			newJobFrame.transform = transform;
+			return newJobFrame;
 		}
 		throw new RuntimeException("JoinType invalid Exception");
 	}
@@ -180,17 +187,26 @@ public class JobFrame {
 	 * @return
 	 */
 	public JobFrame where(Expression expression) {
-		List<Integer> newIndexList = new LinkedList<>();
-		for (int i = 0; i < size(); i ++) {
-			if(expression.calculate(getRow(i)).equals(true)) {
-				newIndexList.add(i);
+		JobFrame newJobFrame = new JobFrame();
+
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
+			List<Integer> newIndexList = new LinkedList<>();
+			for (int i = 0; i < size(); i++) {
+				if (expression.calculate(d1.getRow(i)).equals(true)) {
+					newIndexList.add(i);
+				}
 			}
-		}
-		Map<String, Column> newData = new HashMap<>();
-		jobFrameData.getColumnMapper().forEach((key, value) -> {
-			newData.put(key, value.generateColumnFromKeys(newIndexList));
-		});
-		return new JobFrame(newData);
+			Map<String, Column> newData = new HashMap<>();
+			d1.getColumnMapper().forEach((key, value) -> {
+				newData.put(key, value.generateColumnFromKeys(newIndexList));
+			});
+			return new JobFrameData(newData);
+		};
+
+
+		newJobFrame.setParent(this);
+		newJobFrame.transform = transform;
+		return newJobFrame;
 	}
 
 	/**
