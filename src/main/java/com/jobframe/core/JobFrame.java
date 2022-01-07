@@ -215,11 +215,19 @@ public class JobFrame {
 	 * @return
 	 */
 	public JobFrame select(String... columns) {
-		Map<String, Column> newData = new HashMap<>();
-		for (String column: columns) {
-			newData.put(column, jobFrameData.getColumnMapper().get(column));
-		}
-		return new JobFrame(newData);
+		JobFrame newJobFrame = new JobFrame();
+
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
+			Map<String, Column> newData = new HashMap<>();
+			for (String column : columns) {
+				newData.put(column, jobFrameData.getColumnMapper().get(column));
+			}
+			return new JobFrameData(newData);
+		};
+
+		newJobFrame.setParent(this);
+		newJobFrame.transform = transform;
+		return newJobFrame;
 	}
 
 	/**
@@ -227,7 +235,8 @@ public class JobFrame {
 	 * @return
 	 */
 	public int size() {
-		Optional<Entry<String, Column>> op = jobFrameData.getColumnMapper().entrySet().stream().findFirst();
+		JobFrameData result = execute();
+		Optional<Entry<String, Column>> op = result.getColumnMapper().entrySet().stream().findFirst();
 		return op.map(stringColumnEntry -> stringColumnEntry.getValue().size()).orElse(0);
 	}
 
@@ -236,7 +245,8 @@ public class JobFrame {
 	 * @return
 	 */
 	public List<String> columns() {
-		return new ArrayList<>(jobFrameData.getColumnMapper().keySet());
+		JobFrameData result = execute();
+		return new ArrayList<>(result.getColumnMapper().keySet());
 	}
 
 	/**
@@ -246,14 +256,24 @@ public class JobFrame {
 	 * @return
 	 */
 	public JobFrame withColumn(String columnName, Expression expression) {
-		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
-		Column newColumn = new Column();
-		for (int i = 0; i < size(); i ++) {
-			Object value = expression.calculate(getRow(i));
-			newColumn.append(value);
-		}
-		newData.put(columnName, newColumn);
-		return new JobFrame(newData);
+		JobFrame newJobFrame = new JobFrame();
+
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
+			Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
+			Column newColumn = new Column();
+			for (int i = 0; i < size(); i++) {
+				Object value = expression.calculate(getRow(i));
+				newColumn.append(value);
+			}
+			newData.put(columnName, newColumn);
+
+			return new JobFrameData(newData);
+		};
+
+		newJobFrame.setParent(this);
+		newJobFrame.transform = transform;
+
+		return newJobFrame;
 	}
 
 	/**
@@ -338,23 +358,30 @@ public class JobFrame {
 	 * @return
 	 */
 	public JobFrameGroup groupBy(String... columnName) {
-		Map<List<Object>, List<Integer>> groupedInfo = new HashMap<>();
-		for (int i = 0; i < size(); i ++) {
+		JobFrame newJobFrame = new JobFrame();
 
-			// generate key
-			Row row = getRow(i);
-			List<Object> key = new ArrayList<>();
-			for (String c: columnName) {
-				key.add(row.getField(c));
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> tranform = (JobFrameData d1, JobFrameData d2) -> {
+			Map<List<Object>, List<Integer>> groupedInfo = new HashMap<>();
+			for (int i = 0; i < size(); i++) {
+
+				// generate key
+				Row row = getRow(i);
+				List<Object> key = new ArrayList<>();
+				for (String c : columnName) {
+					key.add(row.getField(c));
+				}
+
+				// group index
+				List<Integer> grList = groupedInfo.getOrDefault(key, new LinkedList<>());
+				grList.add(i);
+				groupedInfo.put(key, grList);
 			}
+			return new JobFrameGroup(columnName, groupedInfo, this.jobFrameData);
+		};
 
-			// group index
-			List<Integer> grList = groupedInfo.getOrDefault(key, new LinkedList<>());
-			grList.add(i);
-			groupedInfo.put(key, grList);
-		}
-
-		return new JobFrameGroup(columnName, groupedInfo, this);
+		newJobFrame.setParent(this);
+		newJobFrame.transform = ;
+		return newJobFrame;
 	}
 
 }

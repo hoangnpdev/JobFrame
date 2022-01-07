@@ -12,9 +12,9 @@ public class JobFrameGroup {
 
     private Map<List<Object>, List<Integer>> groupedInfo;
 
-    private final JobFrame originalFrame;
+    private final JobFrameData originalFrame;
 
-    public JobFrameGroup(String[] groupedColumns, Map<List<Object>, List<Integer>> groupedInfo, JobFrame frame) {
+    public JobFrameGroup(String[] groupedColumns, Map<List<Object>, List<Integer>> groupedInfo, JobFrameData frame) {
         this.groupedColumns = groupedColumns;
         this.groupedInfo = groupedInfo;
         originalFrame = frame;
