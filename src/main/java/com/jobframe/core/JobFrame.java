@@ -8,7 +8,6 @@ import lombok.Setter;
 
 import java.util.*;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.Map.Entry;
 
@@ -357,10 +356,10 @@ public class JobFrame {
 	 * @param columnName
 	 * @return
 	 */
-	public JobFrameGroup groupBy(String... columnName) {
-		JobFrame newJobFrame = new JobFrame();
+	public JobGroup groupBy(String... columnName) {
+		JobGroup newJobGroup = new JobGroup();
 
-		BiFunction<JobFrameData, JobFrameData, JobFrameData> tranform = (JobFrameData d1, JobFrameData d2) -> {
+		BiFunction<JobFrameData, JobFrameData, JobGroupData> grouping = (JobFrameData d1, JobFrameData d2) -> {
 			Map<List<Object>, List<Integer>> groupedInfo = new HashMap<>();
 			for (int i = 0; i < size(); i++) {
 
@@ -376,12 +375,12 @@ public class JobFrame {
 				grList.add(i);
 				groupedInfo.put(key, grList);
 			}
-			return new JobFrameGroup(columnName, groupedInfo, this.jobFrameData);
+			return new JobGroupData(columnName, groupedInfo, d1);
 		};
 
-		newJobFrame.setParent(this);
-		newJobFrame.transform = ;
-		return newJobFrame;
+		newJobGroup.setJobFrameData(this.jobFrameData);
+		newJobGroup.setGrouping(grouping);
+		return newJobGroup;
 	}
 
 }

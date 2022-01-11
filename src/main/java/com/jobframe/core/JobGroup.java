@@ -1,24 +1,20 @@
 package com.jobframe.core;
 
 import com.jobframe.utils.CalculatorUtils;
+import lombok.Setter;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-public class JobFrameGroup {
+public class JobGroup {
 
-    private String[] groupedColumns;
+    @Setter
+    private JobFrameData jobFrameData;
 
-    private Map<List<Object>, List<Integer>> groupedInfo;
-
-    private final JobFrameData originalFrame;
-
-    public JobFrameGroup(String[] groupedColumns, Map<List<Object>, List<Integer>> groupedInfo, JobFrameData frame) {
-        this.groupedColumns = groupedColumns;
-        this.groupedInfo = groupedInfo;
-        originalFrame = frame;
-    }
+    @Setter
+    private BiFunction<JobFrameData, JobFrameData, JobGroupData> grouping;
 
     /**
      * lazy
@@ -27,23 +23,23 @@ public class JobFrameGroup {
      */
     public JobFrame sum(String columnName) {
         Map<String, Column> newData = new HashMap<>();
-        for (String gc: groupedColumns) {
+        for (String gc: jobGroupData.getGroupedColumns()) {
             newData.put(gc, new Column());
         }
         newData.put(columnName, new Column());
 
-        List<Entry<List<Object>, List<Integer>>> entrySet = new ArrayList<>(groupedInfo.entrySet());
+        List<Entry<List<Object>, List<Integer>>> entrySet = new ArrayList<>(jobGroupData.getGroupedInfo().entrySet());
 
         for (int i = 0; i < entrySet.size(); i ++ ) {
             Entry<List<Object>, List<Integer>> entry = entrySet.get(i);
             for (int kid = 0; kid < entry.getKey().size(); kid ++) {
                 Object v = entry.getKey().get(kid);
-                newData.get(groupedColumns[kid]).append(v);
+                newData.get(jobGroupData.getGroupedColumns()[kid]).append(v);
             }
 
             newData.get(columnName).append(
                 CalculatorUtils.sum(
-                        originalFrame.getColumn(columnName)
+                        jobGroupData.getOriginalFrame().getColumn(columnName)
                                 .generateColumnFromKeys(entry.getValue()).values().toArray()
                 )
             );
