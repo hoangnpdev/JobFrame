@@ -15,6 +15,7 @@ public class JobFrame {
 
 	private JobFrameData jobFrameData;
 
+	@Setter
 	private BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData self, JobFrameData other) -> self;
 
 	@Setter
@@ -51,7 +52,7 @@ public class JobFrame {
 		this.jobFrameData = new JobFrameData(data);
 	}
 
-	private JobFrame() {
+	public JobFrame() {
 	}
 
 
@@ -378,7 +379,7 @@ public class JobFrame {
 			return new JobGroupData(columnName, groupedInfo, d1);
 		};
 
-		newJobGroup.setJobFrameData(this.jobFrameData);
+		newJobGroup.setJobFrame(this);
 		newJobGroup.setGrouping(grouping);
 		return newJobGroup;
 	}
