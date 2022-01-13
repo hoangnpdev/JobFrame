@@ -286,16 +286,23 @@ public class JobFrame {
 	 * @return
 	 */
 	public <T1, R> JobFrame withColumn(String columnName, UDF1<T1, R> udf, String inputColumn) {
-		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
-		Column newColumn = new Column();
-		for (int i = 0; i < size(); i ++) {
-			Row row = getRow(i);
-			Object value = udf.apply((T1) row.getField(inputColumn));
-			newColumn.append(value);
-		}
-		newData.put(columnName, newColumn);
-		return new JobFrame(newData);
+		JobFrame jobFrame = new JobFrame();
 
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transforming = (JobFrameData d1, JobFrameData d2) -> {
+			Map<String, Column> newData = new HashMap<>(d1.getColumnMapper());
+			Column newColumn = new Column();
+			for (int i = 0; i < size(); i++) {
+				Row row = getRow(i);
+				Object value = udf.apply((T1) row.getField(inputColumn));
+				newColumn.append(value);
+			}
+			newData.put(columnName, newColumn);
+			return new JobFrameData(newData);
+		};
+
+		jobFrame.setParent(this);
+		jobFrame.setTransform(transforming);
+		return jobFrame;
 	}
 
 	/**
@@ -309,18 +316,26 @@ public class JobFrame {
 	 * @return
 	 */
 	public <T1, T2, R> JobFrame withColumn(String columnName, UDF2<T1, T2, R> udf, String... inputColumns) {
-		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
-		Column newColumn = new Column();
-		for (int i = 0; i < size(); i ++) {
-			Row row = getRow(i);
-			Object value = udf.apply(
-					(T1) row.getField(inputColumns[0]),
-					(T2) row.getField(inputColumns[1])
-			);
-			newColumn.append(value);
-		}
-		newData.put(columnName, newColumn);
-		return new JobFrame(newData);
+		JobFrame jobFrame = new JobFrame();
+
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transforming = (JobFrameData d1, JobFrameData d2) -> {
+			Map<String, Column> newData = new HashMap<>(d1.getColumnMapper());
+			Column newColumn = new Column();
+			for (int i = 0; i < size(); i ++) {
+				Row row = getRow(i);
+				Object value = udf.apply(
+						(T1) row.getField(inputColumns[0]),
+						(T2) row.getField(inputColumns[1])
+				);
+				newColumn.append(value);
+			}
+			newData.put(columnName, newColumn);
+			return new JobFrameData(newData);
+		};
+
+		jobFrame.setParent(this);
+		jobFrame.setTransform(transforming);
+		return jobFrame;
 
 	}
 
@@ -336,19 +351,27 @@ public class JobFrame {
 	 * @return
 	 */
 	public <T1, T2, T3, R> JobFrame withColumn(String columnName, UDF3<T1, T2, T3, R> udf, String... inputColumns) {
-		Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
-		Column newColumn = new Column();
-		for (int i = 0; i < size(); i ++) {
-			Row row = getRow(i);
-			Object value = udf.apply(
-					(T1) row.getField(inputColumns[0]),
-					(T2) row.getField(inputColumns[1]),
-					(T3) row.getField(inputColumns[2])
-			);
-			newColumn.append(value);
-		}
-		newData.put(columnName, newColumn);
-		return new JobFrame(newData);
+		JobFrame jobFrame = new JobFrame();
+
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transforming = (JobFrameData d1, JobFrameData d2) -> {
+			Map<String, Column> newData = new HashMap<>(d1.getColumnMapper());
+			Column newColumn = new Column();
+			for (int i = 0; i < size(); i ++) {
+				Row row = getRow(i);
+				Object value = udf.apply(
+						(T1) row.getField(inputColumns[0]),
+						(T2) row.getField(inputColumns[1]),
+						(T3) row.getField(inputColumns[2])
+				);
+				newColumn.append(value);
+			}
+			newData.put(columnName, newColumn);
+			return new JobFrameData(newData);
+		};
+
+		jobFrame.setParent(this);
+		jobFrame.setTransform(transforming);
+		return jobFrame;
 
 	}
 
