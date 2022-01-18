@@ -83,6 +83,22 @@ public class Column {
 		return result;
 	}
 
+	public List<Integer> getValueSortedKeyList() {
+		List<Entry<Integer, Object>> entrySet = new ArrayList<>(cells.entrySet());
+		entrySet.sort((Entry<Integer, Object> a, Entry<Integer, Object> b) -> {
+			Object valueA = a.getValue();
+			Object valueB = b.getValue();
+			if (valueA instanceof Double) {
+				return ((Double) valueA).compareTo((Double) valueB);
+			}
+			if (valueA instanceof Long) {
+				return ((Long) valueA).compareTo((Long) valueB);
+			}
+			return ((String) valueA).compareTo((String) valueB);
+		});
+		return entrySet.stream().map(Entry::getKey).collect(Collectors.toList());
+	}
+
 	public Column generateColumnFromKeys(List<Integer> indexes) {
 		LinkedHashMap<Integer, Object> newColumnData = new LinkedHashMap<>();
 		for (int newIndex = 0; newIndex < indexes.size(); newIndex ++) {

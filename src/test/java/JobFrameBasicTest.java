@@ -159,4 +159,11 @@ public class JobFrameBasicTest {
 		);
 		assert udfFrame.at(3, "udf_column").equals(960.0);
 	}
+
+	@Test
+	public void test_SortOneColumnAsc() {
+		JobFrame sortedFrame = grFrame.sort("value1");
+		assert sortedFrame.at(0, "value1").equals(200.0);
+		assert sortedFrame.at(5, "value1").equals(600.0);
+	}
 }

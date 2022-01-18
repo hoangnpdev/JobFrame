@@ -407,4 +407,26 @@ public class JobFrame {
 		return newJobGroup;
 	}
 
+	/**
+	 * lazy
+	 * @param columnName
+	 * @return
+	 */
+	public JobFrame sort(String columnName) {
+		JobFrame jobFrame = new JobFrame();
+
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transforming = (JobFrameData d1, JobFrameData d2) -> {
+			HashMap<String, Column> newData = new HashMap<>();
+			List<Integer> valueSortedKeyList = d1.getColumn(columnName).getValueSortedKeyList();
+			d1.getColumnMapper().forEach((cKey, cValue) -> {
+				newData.put(cKey, cValue.generateColumnFromKeys(valueSortedKeyList));
+			});
+			return new JobFrameData(newData);
+		};
+
+		jobFrame.setParent(this);
+		jobFrame.setTransform(transforming);
+		return jobFrame;
+	}
+
 }
