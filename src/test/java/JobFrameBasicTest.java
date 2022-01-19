@@ -22,6 +22,8 @@ public class JobFrameBasicTest {
 
 	private JobFrame otherFrame;
 
+	private JobFrame duplicatedFrame;
+
 	private JobFrame fourFrame;
 
 	private JobFrame grFrame;
@@ -44,6 +46,15 @@ public class JobFrameBasicTest {
 				Arrays.asList(6L, "hoang60", 600.0)
 		);
 		otherFrame = new JobFrame(datas2, Arrays.asList("id", "name", "value"));
+
+		List<List<Object>> duplicatedData = Arrays.asList(
+				Arrays.asList(3L, "hoang20", 200.0),
+				Arrays.asList(3L, "hoang30", 300.0),
+				Arrays.asList(4L, "hoang40", 400.0),
+				Arrays.asList(5L, "hoang50", 500.0),
+				Arrays.asList(6L, "hoang60", 600.0)
+		);
+		duplicatedFrame = new JobFrame(duplicatedData, Arrays.asList("id", "name2", "value2"));
 
 		List<List<Object>> datas3 = Arrays.asList(
 				Arrays.asList(3L, "hoang30", 300.0, 10),
@@ -93,6 +104,33 @@ public class JobFrameBasicTest {
 		JobFrame nFrame = joinFrame.eqAndGet("name", "hoang4");
 		System.out.println(nFrame.at(0, "value"));
 		assert nFrame.at(0, "value").equals(40.0);
+	}
+
+	@Test
+	public void test_leftJoin() {
+		// 1 2 3 3 4
+		JobFrame joinFrame = jobFrame.join(
+				duplicatedFrame,
+				"id=id",
+				"left"
+		);
+		assert joinFrame
+				.where(
+						col("id").equalTo(lit(3L))
+				).size() == 2;
+		assert joinFrame
+				.where(
+						col("id").equalTo(lit(1L))
+				).at(0, "value2") == null;
+		assert joinFrame
+				.where(
+						col("id").equalTo(lit(4L))
+				).at(0, "value2").equals(400.0);
+	}
+
+	@Test
+	public void test_fullJoin() {
+
 	}
 
 	@Test

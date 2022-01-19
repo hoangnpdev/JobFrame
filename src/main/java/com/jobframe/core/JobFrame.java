@@ -137,36 +137,40 @@ public class JobFrame {
 	public JobFrame join(JobFrame otherFrame, String how, String joinType) {
 		JobFrame newJobFrame = new JobFrame();
 
-		if (joinType.equals("inner")) {
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
+			Map<String, Column> joinData = new HashMap<>();
+			String[] keyKey = how.split("=");
+			String leftKey = keyKey[0];
+			String rightKey = keyKey[1];
+			Column leftKeyColumn = d1.getColumn(leftKey);
+			Column rightKeyColumn = d2.getColumn(rightKey);
+			List<Entry<Integer, Integer>> commonKeys =
+					leftKeyColumn.getCommonKeyWith(rightKeyColumn, joinType);
 
-			BiFunction<JobFrameData, JobFrameData, JobFrameData> tranform = (JobFrameData d1, JobFrameData d2) -> {
-				Map<String, Column> joinData = new HashMap<>();
-				String[] keyKey = how.split("=");
-				String leftKey = keyKey[0];
-				String rightKey = keyKey[1];
-				Column leftKeyColumn = d1.getColumn(leftKey);
-				Column rightKeyColumn = d2.getColumn(rightKey);
-				List<Entry<Integer, Integer>> innerKeys = leftKeyColumn.getInnerKeyWith(rightKeyColumn);
 
-				List<Integer> rightKeyList = innerKeys.stream().map(Entry::getValue).collect(Collectors.toList());
-				d2.getColumnMapper().forEach((key, value) -> {
-					Column column = value.generateColumnFromKeys(rightKeyList);
-					joinData.put(key, column);
-				});
 
-				List<Integer> leftKeyList = innerKeys.stream().map(Entry::getKey).collect(Collectors.toList());
-				d1.getColumnMapper().forEach((key, value) -> {
-					Column column = value.generateColumnFromKeys(leftKeyList);
-					joinData.put(key, column);
-				});
-				return new JobFrameData(joinData);
-			};
-			newJobFrame.setParent(this);
-			newJobFrame.setOther(otherFrame);
-			newJobFrame.transform = transform;
-			return newJobFrame;
-		}
-		throw new RuntimeException("JoinType invalid Exception");
+			List<Integer> rightKeyList = commonKeys.stream()
+					.map(Entry::getValue)
+					.collect(Collectors.toList());
+			d2.getColumnMapper().forEach((key, value) -> {
+				Column column = value.generateColumnFromKeys(rightKeyList);
+				joinData.put(key, column);
+			});
+
+			List<Integer> leftKeyList = commonKeys.stream()
+					.map(Entry::getKey)
+					.collect(Collectors.toList());
+			d1.getColumnMapper().forEach((key, value) -> {
+				Column column = value.generateColumnFromKeys(leftKeyList);
+				joinData.put(key, column);
+			});
+			return new JobFrameData(joinData);
+		};
+
+		newJobFrame.setParent(this);
+		newJobFrame.setOther(otherFrame);
+		newJobFrame.transform = transform;
+		return newJobFrame;
 	}
 
 	/**

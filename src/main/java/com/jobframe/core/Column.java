@@ -1,5 +1,7 @@
 package com.jobframe.core;
 
+import sun.awt.image.ImageWatched;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,6 +68,49 @@ public class Column {
 		cells = newCell;
 	}
 
+	public List<Entry<Integer, Integer>> getCommonKeyWith(Column rightKeyColumn, String joinType) {
+		if (joinType.equals("inner")) {
+			return getInnerKeyWith(rightKeyColumn);
+		} else if (joinType.equals("left")) {
+			return getLeftKeyWith(rightKeyColumn);
+		}
+		throw new RuntimeException("Join type - " + joinType + "not found!");
+	}
+
+	public List<Entry<Integer, Integer>> getLeftKeyWith(Column rightKeyColumn) {
+		List<Entry<Integer, Integer>> result = new LinkedList<>();
+
+		Set<Entry<Integer, Object>> leftEntrySet = cells.entrySet();
+		Set<Entry<Integer, Object>> rightEntrySet = rightKeyColumn.cells.entrySet();
+
+		for (Entry<Integer, Object> leftEntry: leftEntrySet) {
+			List<Entry<Integer, Integer>> matchedJoin = new LinkedList<>();
+
+			for (Entry<Integer, Object> rightEntry: rightEntrySet) {
+				if (leftEntry.getValue().equals(rightEntry.getValue())) {
+					matchedJoin.add(
+							new AbstractMap.SimpleEntry<>(
+									leftEntry.getKey(),
+									rightEntry.getKey()
+							)
+					);
+				}
+
+			}
+
+			if (matchedJoin.isEmpty()) {
+				matchedJoin.add(
+						new AbstractMap.SimpleEntry<>(
+								leftEntry.getKey(),
+								null
+						)
+				);
+			}
+			result.addAll(matchedJoin);
+		}
+		return result;
+	}
+
 	public List<Entry<Integer, Integer>> getInnerKeyWith(Column rightKeyColumn) {
 		List<Entry<Integer, Integer>> result = new LinkedList<>();
 
@@ -102,7 +147,8 @@ public class Column {
 	public Column generateColumnFromKeys(List<Integer> indexes) {
 		LinkedHashMap<Integer, Object> newColumnData = new LinkedHashMap<>();
 		for (int newIndex = 0; newIndex < indexes.size(); newIndex ++) {
-			newColumnData.put(newIndex, cells.get(indexes.get(newIndex)));
+			Object newValue = indexes.get(newIndex) == null ? null : cells.get(indexes.get(newIndex));
+			newColumnData.put(newIndex, newValue);
 		}
 		return new Column(newColumnData);
 	}
