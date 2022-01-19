@@ -1,5 +1,7 @@
 package com.jobframe.core;
 
+import sun.awt.image.ImageWatched;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,27 +68,27 @@ public class Column {
 		cells = newCell;
 	}
 
-	public List<Entry<Integer, Integer>> getInnerKeyWith(Column rightKeyColumn) {
-		List<Entry<Integer, Integer>> result = new LinkedList<>();
-
-		Set<Entry<Integer, Object>> leftEntrySet = cells.entrySet();
-		Set<Entry<Integer, Object>> rightEntrySet = rightKeyColumn.cells.entrySet();
-
-		for (Entry<Integer, Object> leftEntry: leftEntrySet) {
-			for (Entry<Integer, Object> rightEntry: rightEntrySet) {
-				if (leftEntry.getValue().equals(rightEntry.getValue())) {
-					result.add(new AbstractMap.SimpleEntry<>(leftEntry.getKey(), rightEntry.getKey()));
-				}
+	public List<Integer> getValueSortedKeyList() {
+		List<Entry<Integer, Object>> entrySet = new ArrayList<>(cells.entrySet());
+		entrySet.sort((Entry<Integer, Object> a, Entry<Integer, Object> b) -> {
+			Object valueA = a.getValue();
+			Object valueB = b.getValue();
+			if (valueA instanceof Double) {
+				return ((Double) valueA).compareTo((Double) valueB);
 			}
-		}
-
-		return result;
+			if (valueA instanceof Long) {
+				return ((Long) valueA).compareTo((Long) valueB);
+			}
+			return ((String) valueA).compareTo((String) valueB);
+		});
+		return entrySet.stream().map(Entry::getKey).collect(Collectors.toList());
 	}
 
 	public Column generateColumnFromKeys(List<Integer> indexes) {
 		LinkedHashMap<Integer, Object> newColumnData = new LinkedHashMap<>();
 		for (int newIndex = 0; newIndex < indexes.size(); newIndex ++) {
-			newColumnData.put(newIndex, cells.get(indexes.get(newIndex)));
+			Object newValue = indexes.get(newIndex) == null ? null : cells.get(indexes.get(newIndex));
+			newColumnData.put(newIndex, newValue);
 		}
 		return new Column(newColumnData);
 	}

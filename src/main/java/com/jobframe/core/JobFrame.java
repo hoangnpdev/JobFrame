@@ -137,37 +137,168 @@ public class JobFrame {
 	public JobFrame join(JobFrame otherFrame, String how, String joinType) {
 		JobFrame newJobFrame = new JobFrame();
 
-		if (joinType.equals("inner")) {
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
+			Map<String, Column> joinData = new HashMap<>();
 
-			BiFunction<JobFrameData, JobFrameData, JobFrameData> tranform = (JobFrameData d1, JobFrameData d2) -> {
-				Map<String, Column> joinData = new HashMap<>();
-				String[] keyKey = how.split("=");
-				String leftKey = keyKey[0];
-				String rightKey = keyKey[1];
-				Column leftKeyColumn = d1.getColumn(leftKey);
-				Column rightKeyColumn = d2.getColumn(rightKey);
-				List<Entry<Integer, Integer>> innerKeys = leftKeyColumn.getInnerKeyWith(rightKeyColumn);
+			List<Entry<Integer, Integer>> commonKeys = getCommonKeys(d1, d2, how, joinType);
 
-				List<Integer> rightKeyList = innerKeys.stream().map(Entry::getValue).collect(Collectors.toList());
-				d2.getColumnMapper().forEach((key, value) -> {
-					Column column = value.generateColumnFromKeys(rightKeyList);
-					joinData.put(key, column);
-				});
+			List<Integer> rightKeyList = commonKeys.stream()
+					.map(Entry::getValue)
+					.collect(Collectors.toList());
+			d2.getColumnMapper().forEach((key, value) -> {
+				Column column = value.generateColumnFromKeys(rightKeyList);
+				joinData.put(key, column);
+			});
 
-				List<Integer> leftKeyList = innerKeys.stream().map(Entry::getKey).collect(Collectors.toList());
-				d1.getColumnMapper().forEach((key, value) -> {
-					Column column = value.generateColumnFromKeys(leftKeyList);
-					joinData.put(key, column);
-				});
-				return new JobFrameData(joinData);
-			};
-			newJobFrame.setParent(this);
-			newJobFrame.setOther(otherFrame);
-			newJobFrame.transform = transform;
-			return newJobFrame;
-		}
-		throw new RuntimeException("JoinType invalid Exception");
+			List<Integer> leftKeyList = commonKeys.stream()
+					.map(Entry::getKey)
+					.collect(Collectors.toList());
+			d1.getColumnMapper().forEach((key, value) -> {
+				Column column = value.generateColumnFromKeys(leftKeyList);
+				joinData.put(key, column);
+			});
+			return new JobFrameData(joinData);
+		};
+
+		newJobFrame.setParent(this);
+		newJobFrame.setOther(otherFrame);
+		newJobFrame.transform = transform;
+		return newJobFrame;
 	}
+
+	private List<Entry<Integer, Integer>> getCommonKeys(
+			JobFrameData d1, JobFrameData d2,
+			String how, String joinType
+	) {
+		List<Column> leftColumnList = new ArrayList<>();
+		List<Column> rightColumnList = new ArrayList<>();
+
+		// get pair list
+		String[] keyPairList = how.split(";");
+		for (String keyPair: keyPairList) {
+			String[] keys = keyPair.split("=");
+			leftColumnList.add(d1.getColumn(keys[0].trim()));
+			rightColumnList.add(d2.getColumn(keys[1].trim()));
+		}
+
+		// get common keys
+		return findCommonKeysByJoinType(leftColumnList, rightColumnList, joinType);
+	}
+
+	private List<Entry<Integer, Integer>> findCommonKeysByJoinType(
+			List<Column> leftColumnList,
+			List<Column> rightColumnList,
+			String joinType
+	) {
+		if (joinType.equals("inner")) {
+			return findInnerCommonKey(leftColumnList, rightColumnList);
+		}
+		if (joinType.equals("left")) {
+			return findLeftCommonKey(leftColumnList, rightColumnList);
+		}
+		if (joinType.equals("full")) {
+			return findFullCommonKey(leftColumnList, rightColumnList);
+		}
+		throw new RuntimeException("Join type - " + joinType + " not found! ");
+	}
+
+	private boolean isMatch(int lid, int rid, List<Column> leftColumnList, List<Column> rightColumnList) {
+		boolean result = true;
+		int nCol = leftColumnList.size();
+		assert nCol == rightColumnList.size();
+		for (int i = 0; i < nCol; i ++) {
+			result = result && leftColumnList.get(i).get(lid).equals(
+					rightColumnList.get(i).get(rid)
+			);
+		}
+		return result;
+	}
+
+	private List<Entry<Integer, Integer>> findInnerCommonKey(
+			List<Column> leftColumnList, List<Column> rightColumnList
+	) {
+		List<Entry<Integer, Integer>> result = new LinkedList<>();
+		int leftSize = leftColumnList.get(0).size();
+		int rightSize = rightColumnList.get(0).size();
+		for (int i = 0; i < leftSize; i ++) {
+			for (int j = 0; j < rightSize; j ++ ) {
+				if (isMatch(i, j, leftColumnList, rightColumnList)) {
+					result.add(
+							new AbstractMap.SimpleEntry<>(i, j)
+					);
+				}
+			}
+		}
+		return result;
+	}
+
+	private List<Entry<Integer, Integer>> findLeftCommonKey(
+			List<Column> leftColumnList, List<Column> rightColumnList
+	) {
+		List<Entry<Integer, Integer>> result = new LinkedList<>();
+		int leftSize = leftColumnList.get(0).size();
+		int rightSize = rightColumnList.get(0).size();
+		for (int i = 0; i < leftSize; i ++) {
+			List<Entry<Integer, Integer>> matchedJoin = new LinkedList<>();
+			for (int j = 0; j < rightSize; j ++ ) {
+				if (isMatch(i, j, leftColumnList, rightColumnList)) {
+					matchedJoin.add(
+							new AbstractMap.SimpleEntry<>(i, j)
+					);
+				}
+			}
+			if (matchedJoin.isEmpty()) {
+				matchedJoin.add(
+						new AbstractMap.SimpleEntry<>(
+								i,
+								null
+						)
+				);
+			}
+			result.addAll(matchedJoin);
+		}
+		return result;
+	}
+
+	private List<Entry<Integer, Integer>> findFullCommonKey(
+			List<Column> leftColumnList, List<Column> rightColumnList
+	) {
+		List<Entry<Integer, Integer>> result = new LinkedList<>();
+		int leftSize = leftColumnList.get(0).size();
+		int rightSize = rightColumnList.get(0).size();
+		Set<Integer> usedRightIndexMarker = new HashSet<>();
+		for (int i = 0; i < leftSize; i ++) {
+			List<Entry<Integer, Integer>> matchedJoin = new LinkedList<>();
+			for (int j = 0; j < rightSize; j ++ ) {
+				if (isMatch(i, j, leftColumnList, rightColumnList)) {
+					matchedJoin.add(
+							new AbstractMap.SimpleEntry<>(i, j)
+					);
+					usedRightIndexMarker.add(j);
+				}
+			}
+			if (matchedJoin.isEmpty()) {
+				matchedJoin.add(
+						new AbstractMap.SimpleEntry<>(
+								i,
+								null
+						)
+				);
+			}
+			result.addAll(matchedJoin);
+
+		}
+		for (int i = 0; i < rightSize; i ++) {
+			if(!usedRightIndexMarker.contains(i)) {
+				result.add(
+					new AbstractMap.SimpleEntry<>(null, i)
+				);
+			}
+		}
+		return result;
+	}
+
+
 
 	/**
 	 * eager
@@ -405,6 +536,28 @@ public class JobFrame {
 		newJobGroup.setJobFrame(this);
 		newJobGroup.setGrouping(grouping);
 		return newJobGroup;
+	}
+
+	/**
+	 * lazy
+	 * @param columnName
+	 * @return
+	 */
+	public JobFrame sort(String columnName) {
+		JobFrame jobFrame = new JobFrame();
+
+		BiFunction<JobFrameData, JobFrameData, JobFrameData> transforming = (JobFrameData d1, JobFrameData d2) -> {
+			HashMap<String, Column> newData = new HashMap<>();
+			List<Integer> valueSortedKeyList = d1.getColumn(columnName).getValueSortedKeyList();
+			d1.getColumnMapper().forEach((cKey, cValue) -> {
+				newData.put(cKey, cValue.generateColumnFromKeys(valueSortedKeyList));
+			});
+			return new JobFrameData(newData);
+		};
+
+		jobFrame.setParent(this);
+		jobFrame.setTransform(transforming);
+		return jobFrame;
 	}
 
 }

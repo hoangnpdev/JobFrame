@@ -41,4 +41,8 @@ public class JobFrameData {
 		columnMapper.forEach((key, value) -> rData.put(key, value.get(index)));
 		return new Row(rData);
 	}
+
+	public int size() {
+		return columnMapper.entrySet().stream().findFirst().get().getValue().size();
+	}
 }
