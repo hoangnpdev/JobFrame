@@ -130,6 +130,28 @@ public class JobFrameBasicTest {
 
 	@Test
 	public void test_fullJoin() {
+		// 1 2 3 3 4
+		JobFrame joinFrame = jobFrame.join(
+				duplicatedFrame,
+				"id=id",
+				"full"
+		);
+		assert joinFrame
+				.where(
+						col("id").equalTo(lit(3L))
+				).size() == 2;
+		assert joinFrame
+				.where(
+						col("id").equalTo(lit(1L))
+				).at(0, "value2") == null;
+		assert joinFrame
+				.where(
+						col("id").equalTo(lit(6L))
+				).at(0, "value") == null;
+		assert joinFrame
+				.where(
+						col("name2").equalTo(lit("hoang60"))
+				).at(0, "value2").equals(600.0);
 
 	}
 

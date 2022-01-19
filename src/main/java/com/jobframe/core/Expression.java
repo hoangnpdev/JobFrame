@@ -52,6 +52,11 @@ public class Expression {
             return CalculatorUtils.not(computeNode(node.left(), row));
         }
         if (type.equals(NodeType.EQUAL)) {
+            Object leftValue = computeNode(node.left(), row);
+            Object rightValue = computeNode(node.right(), row);
+            if (leftValue == null || rightValue == null) {
+                return false;
+            }
             return computeNode(node.left(), row).equals(computeNode(node.right(), row));
         }
         throw new RuntimeException("NodeType not found Exception: " + node.getType());
