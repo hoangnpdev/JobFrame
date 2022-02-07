@@ -6,6 +6,7 @@ import com.jobframe.udf.define.UDF3;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.RandomAccessFile;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -42,6 +43,10 @@ public class JobFrame {
 				jobFrameData.getColumn(columnNames.get(i)).append(data.get(i));
 			}
 		}
+	}
+
+	public void addColumn(String columnName, RandomAccessFile randomAccessFile) {
+		this.jobFrameData.addColumn();
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package com.jobframe.core;
 
+import java.io.RandomAccessFile;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -15,8 +16,8 @@ public class JobFrameData {
 		this.columnMapper = columnMapper;
 	}
 
-	public void addColumn(String columnName) {
-		columnMapper.put(columnName, new Column());
+	public void addColumn(String columnName, RandomAccessFile randomAccessFile) {
+		columnMapper.put(columnName, new Column(randomAccessFile));
 	}
 
 	public Column getColumn(String columnName) {

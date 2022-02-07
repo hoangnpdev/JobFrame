@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 
 
@@ -17,7 +18,7 @@ public class LoadingCsvTest {
 	private JobFrame firstFrame;
 
 	@BeforeEach
-	public void beforeA() {
+	public void beforeA() throws FileNotFoundException {
 		firstFrame = JobFrames.load("src/test/resources/first.csv", Arrays.asList("id", "name", "value"));
 	}
 

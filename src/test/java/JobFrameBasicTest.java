@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 
 import static com.jobframe.core.ExpressionBuilder.*;
@@ -29,7 +30,7 @@ public class JobFrameBasicTest {
 	private JobFrame groupFrame;
 
 	@BeforeEach
-	public void beforeA() {
+	public void beforeA() throws FileNotFoundException {
 		firstFrame = JobFrames.load("src/test/resources/first.csv", Arrays.asList("id", "name", "value"));
 
 		secondFrame = JobFrames.load("src/test/resources/second.csv", Arrays.asList("id", "name", "value"));

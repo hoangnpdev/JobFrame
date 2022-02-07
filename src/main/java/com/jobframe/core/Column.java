@@ -2,6 +2,8 @@ package com.jobframe.core;
 
 import sun.awt.image.ImageWatched;
 
+import javax.xml.bind.DatatypeConverter;
+import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -9,18 +11,49 @@ import java.util.Map.Entry;
 
 public class Column {
 
-	LinkedHashMap<Integer, Object> cells;
+	private static byte[] NULL_BYTE = DatatypeConverter.parseHexBinary("00");
 
-	public Column() {
-		cells = new LinkedHashMap<>();
+	private Class type;
+
+	private RandomAccessFile cells;
+
+	public Column(Class clazz) throws FileNotFoundException {
+		String tmpName = UUID.randomUUID().toString();
+		cells = new RandomAccessFile("tmp/" + tmpName + ".col", "rw");
+		this.type = clazz;
 	}
 
-	public Column(Map<Integer, Object> data) {
-		cells = new LinkedHashMap<>(data);
+	public Column(RandomAccessFile randomAccessFile, Class clazz) {
+		cells = randomAccessFile;
+		this.type = clazz;
 	}
 
-	public void append(Object data) {
-		cells.put(cells.size(), data);
+	public void append(Object data) throws IOException {
+		byte[] raw = toByte(data);
+		cells.write(raw, (int) cells.length() - 1, raw.length);
+	}
+
+	private int getTypeSize() {
+		if (type.getName().equals(String.class.getName()))
+			return 64000;
+		if (type.getName().equals(Double.class.getName()))
+			return 8;
+		if (type.getName().equals(Long.class.getName()))
+			return 8;
+		throw new RuntimeException("type not found!");
+	}
+
+	private byte[] toByte(Object data) throws IOException {
+		int typeSize = getTypeSize();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(bos);
+		oos.writeObject(data);
+		oos.flush();
+		for (int i = 0; i < typeSize - bos.size(); i++) {
+			oos.write(NULL_BYTE);
+		}
+		oos.flush();
+		return bos.toByteArray();
 	}
 
 	public int size() {
