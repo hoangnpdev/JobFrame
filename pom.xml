@@ -6,7 +6,7 @@
 
     <groupId>com.nph</groupId>
     <artifactId>JobFrame</artifactId>
-    <version>0.1.5</version>
+    <version>0.1.6</version>
     <build>
         <plugins>
             <plugin>
