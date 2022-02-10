@@ -1,11 +1,16 @@
 package com.jobframe.core;
 
+import org.apache.log4j.Logger;
+
 import java.io.*;
 import java.util.*;
 
 public class JobFrames {
 
+	private static Logger log = Logger.getLogger(JobFrames.class);
+
 	public static JobFrame load(String csvPath, List<String> headers) throws FileNotFoundException {
+		mkdirs("tmp");
 		BufferedReader bufferedReader = new BufferedReader(new FileReader(csvPath));
 		List<Class> typeList = findType(bufferedReader);
 		List<Column> columnList = new ArrayList<>();
@@ -15,17 +20,13 @@ public class JobFrames {
 		bufferedReader.lines().forEach(line -> {
 			String[] value = line.split(",");
 			for (int i = 0; i < columnList.size(); i ++) {
-				try {
 					columnList.get(i).append(
-							typeList.get(i).cast(value[i])
+							parse(value[i], typeList.get(i))
 					);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
 			}
 
 		});
-		Map<String, Column> columnMapper = new HashMap<>();
+		Map<String, Object> columnMapper = new HashMap<>();
 		for (int i = 0; i < columnList.size(); i ++) {
 			columnMapper.put(headers.get(i), columnList.get(i));
 		}
@@ -45,6 +46,16 @@ public class JobFrames {
 			typeList.add(getType(value));
 		}
 		return typeList;
+	}
+
+	private static Object parse(String value, Class type) {
+		if (type.equals(Long.class)) {
+			return Long.parseLong(value);
+		}
+		if (type.equals(Double.class)) {
+			return Double.parseDouble(value);
+		}
+		return value;
 	}
 
 	private static Class getType(String value) {
@@ -76,5 +87,18 @@ public class JobFrames {
 			return false;
 		}
 		return true;
+	}
+
+	private static void mkdirs(String path) {
+		File file = new File(path);
+		if (file.mkdirs()) {
+			log("working directory at: " + file.getAbsolutePath());
+		} else {
+			log("create tmp dir failed!");
+		}
+	}
+
+	private static void log(Object object) {
+		System.out.println(object);
 	}
 }

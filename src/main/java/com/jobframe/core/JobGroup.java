@@ -25,7 +25,7 @@ public class JobGroup {
         JobFrame newJobFrame = new JobFrame();
         BiFunction<JobFrameData, JobFrameData, JobFrameData> transforming = (JobFrameData d1, JobFrameData d2) -> {
             JobGroupData jobGroupData = grouping.apply(d1, null);
-            Map<String, Column> newData = new HashMap<>();
+            Map<String, Object> newData = new HashMap<>();
             for (String gc: jobGroupData.getGroupedColumns()) {
                 newData.put(gc, new Column());
             }
@@ -37,10 +37,10 @@ public class JobGroup {
                 Entry<List<Object>, List<Integer>> entry = entrySet.get(i);
                 for (int kid = 0; kid < entry.getKey().size(); kid ++) {
                     Object v = entry.getKey().get(kid);
-                    newData.get(jobGroupData.getGroupedColumns()[kid]).append(v);
+                    ((Column) newData.get(jobGroupData.getGroupedColumns()[kid])).append(v);
                 }
 
-                newData.get(columnName).append(
+                ((Column) newData.get(columnName)).append(
                     CalculatorUtils.sum(
                             jobGroupData.getOriginalFrame().getColumn(columnName)
                                     .generateColumnFromKeys(entry.getValue()).values().toArray()

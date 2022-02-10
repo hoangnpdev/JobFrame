@@ -30,30 +30,26 @@ public class JobFrame {
 
 	/**
 	 * temp eager
-	 * @param datas
-	 * @param columnNames
 	 */
-	public JobFrame(List<List<Object>> datas, List<String> columnNames) {
-		jobFrameData = new JobFrameData();
-		for (String columnName: columnNames) {
-			jobFrameData.addColumn(columnName);
-		}
-		for (List<Object> data: datas) {
-			for (int i = 0; i < columnNames.size(); i++) {
-				jobFrameData.getColumn(columnNames.get(i)).append(data.get(i));
-			}
-		}
-	}
+	// fixme remove this function
+//	public JobFrame(List<List<Object>> datas, List<String> columnNames) {
+//		jobFrameData = new JobFrameData();
+//		for (String columnName: columnNames) {
+//			jobFrameData.addColumn(columnName);
+//		}
+//		for (List<Object> data: datas) {
+//			for (int i = 0; i < columnNames.size(); i++) {
+//				jobFrameData.getColumn(columnNames.get(i)).append(data.get(i));
+//			}
+//		}
+//	}
 
-	public void addColumn(String columnName, RandomAccessFile randomAccessFile) {
-		this.jobFrameData.addColumn();
-	}
 
 	/**
 	 * temp eager
 	 * @param data
 	 */
-	public JobFrame(Map<String, Column> data) {
+	public JobFrame(Map<String, Object> data) {
 		this.jobFrameData = new JobFrameData(data);
 	}
 
@@ -92,7 +88,7 @@ public class JobFrame {
 	 */
 	public Object at(int rowIndex, String columnName) {
 		JobFrameData result = execute();
-		return result.getColumn(columnName).get(rowIndex);
+		return result.at(rowIndex, columnName);
 	}
 
 	/**
@@ -106,12 +102,12 @@ public class JobFrame {
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
 			Column column = d1.getColumn(columnName);
 			Set<Integer> indexes = column.getIndexes(value);
-			Map<String, Column> data = d1.getColumnMapper().entrySet()
+			Map<String, Object> data = d1.getColumnMapper().entrySet()
 					.stream()
 					.collect(
 							Collectors.toMap(
 									Entry::getKey,
-								entry -> entry.getValue().filterByIndexes(indexes)
+								entry -> ((Column) entry.getValue()).filterByIndexes(indexes)
 							)
 					);
 			JobFrameData result = new JobFrameData(data);
@@ -128,7 +124,7 @@ public class JobFrame {
 	 * eager
 	 * @return
 	 */
-	private Map<String, Column> getData() {
+	private Map<String, Object> getData() {
 		return jobFrameData.getColumnMapper();
 	}
 
@@ -143,7 +139,7 @@ public class JobFrame {
 		JobFrame newJobFrame = new JobFrame();
 
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
-			Map<String, Column> joinData = new HashMap<>();
+			Map<String, Object> joinData = new HashMap<>();
 
 			List<Entry<Integer, Integer>> commonKeys = getCommonKeys(d1, d2, how, joinType);
 
@@ -151,7 +147,7 @@ public class JobFrame {
 					.map(Entry::getValue)
 					.collect(Collectors.toList());
 			d2.getColumnMapper().forEach((key, value) -> {
-				Column column = value.generateColumnFromKeys(rightKeyList);
+				Column column = ((Column) value).generateColumnFromKeys(rightKeyList);
 				joinData.put(key, column);
 			});
 
@@ -159,7 +155,7 @@ public class JobFrame {
 					.map(Entry::getKey)
 					.collect(Collectors.toList());
 			d1.getColumnMapper().forEach((key, value) -> {
-				Column column = value.generateColumnFromKeys(leftKeyList);
+				Column column = ((Column) value).generateColumnFromKeys(leftKeyList);
 				joinData.put(key, column);
 			});
 			return new JobFrameData(joinData);
@@ -312,7 +308,7 @@ public class JobFrame {
 	 */
 	public Row getRow(int index) {
 		Map<String, Object> rData = new HashMap<>();
-		jobFrameData.getColumnMapper().forEach((key, value) -> rData.put(key, value.get(index)));
+		jobFrameData.getColumnMapper().forEach((key, value) -> rData.put(key, ((Column) value).get(index)));
 		return new Row(rData);
 	}
 
@@ -332,9 +328,9 @@ public class JobFrame {
 					newIndexList.add(i);
 				}
 			}
-			Map<String, Column> newData = new HashMap<>();
+			Map<String, Object> newData = new HashMap<>();
 			d1.getColumnMapper().forEach((key, value) -> {
-				newData.put(key, value.generateColumnFromKeys(newIndexList));
+				newData.put(key, ((Column) value).generateColumnFromKeys(newIndexList));
 			});
 			return new JobFrameData(newData);
 		};
@@ -354,7 +350,7 @@ public class JobFrame {
 		JobFrame newJobFrame = new JobFrame();
 
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
-			Map<String, Column> newData = new HashMap<>();
+			Map<String, Object> newData = new HashMap<>();
 			for (String column : columns) {
 				newData.put(column, jobFrameData.getColumnMapper().get(column));
 			}
@@ -372,8 +368,8 @@ public class JobFrame {
 	 */
 	public int size() {
 		JobFrameData result = execute();
-		Optional<Entry<String, Column>> op = result.getColumnMapper().entrySet().stream().findFirst();
-		return op.map(stringColumnEntry -> stringColumnEntry.getValue().size()).orElse(0);
+		Optional<Entry<String, Object>> op = result.getColumnMapper().entrySet().stream().findFirst();
+		return op.map(stringColumnEntry -> ((Column) stringColumnEntry.getValue()).size()).orElse(0);
 	}
 
 	/**
@@ -395,7 +391,7 @@ public class JobFrame {
 		JobFrame newJobFrame = new JobFrame();
 
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
-			Map<String, Column> newData = new HashMap<>(jobFrameData.getColumnMapper());
+			Map<String, Object> newData = new HashMap<>(jobFrameData.getColumnMapper());
 			Column newColumn = new Column();
 			for (int i = 0; i < size(); i++) {
 				Object value = expression.calculate(getRow(i));
@@ -425,7 +421,7 @@ public class JobFrame {
 		JobFrame jobFrame = new JobFrame();
 
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transforming = (JobFrameData d1, JobFrameData d2) -> {
-			Map<String, Column> newData = new HashMap<>(d1.getColumnMapper());
+			Map<String, Object> newData = new HashMap<>(d1.getColumnMapper());
 			Column newColumn = new Column();
 			for (int i = 0; i < size(); i++) {
 				Row row = getRow(i);
@@ -455,7 +451,7 @@ public class JobFrame {
 		JobFrame jobFrame = new JobFrame();
 
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transforming = (JobFrameData d1, JobFrameData d2) -> {
-			Map<String, Column> newData = new HashMap<>(d1.getColumnMapper());
+			Map<String, Object> newData = new HashMap<>(d1.getColumnMapper());
 			Column newColumn = new Column();
 			for (int i = 0; i < size(); i ++) {
 				Row row = getRow(i);
@@ -490,7 +486,7 @@ public class JobFrame {
 		JobFrame jobFrame = new JobFrame();
 
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transforming = (JobFrameData d1, JobFrameData d2) -> {
-			Map<String, Column> newData = new HashMap<>(d1.getColumnMapper());
+			Map<String, Object> newData = new HashMap<>(d1.getColumnMapper());
 			Column newColumn = new Column();
 			for (int i = 0; i < size(); i ++) {
 				Row row = getRow(i);
@@ -552,10 +548,10 @@ public class JobFrame {
 		JobFrame jobFrame = new JobFrame();
 
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transforming = (JobFrameData d1, JobFrameData d2) -> {
-			HashMap<String, Column> newData = new HashMap<>();
+			HashMap<String, Object> newData = new HashMap<>();
 			List<Integer> valueSortedKeyList = d1.getColumn(columnName).getValueSortedKeyList();
 			d1.getColumnMapper().forEach((cKey, cValue) -> {
-				newData.put(cKey, cValue.generateColumnFromKeys(valueSortedKeyList));
+				newData.put(cKey, ((Column) cValue).generateColumnFromKeys(valueSortedKeyList));
 			});
 			return new JobFrameData(newData);
 		};

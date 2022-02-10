@@ -1,7 +1,5 @@
 package com.jobframe.core;
 
-import sun.awt.image.ImageWatched;
-
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.util.*;
@@ -17,6 +15,11 @@ public class Column {
 
 	private RandomAccessFile cells;
 
+	// fixme: temporary use for unit testing
+	public Column() {
+
+	}
+
 	public Column(Class clazz) throws FileNotFoundException {
 		String tmpName = UUID.randomUUID().toString();
 		cells = new RandomAccessFile("tmp/" + tmpName + ".col", "rw");
@@ -28,18 +31,24 @@ public class Column {
 		this.type = clazz;
 	}
 
-	public void append(Object data) throws IOException {
-		byte[] raw = toByte(data);
-		cells.write(raw, (int) cells.length() - 1, raw.length);
+	public void append(Object data) {
+		try {
+			byte[] raw = toByte(data);
+			cells.seek(cells.length());
+			cells.write(raw);
+			System.out.println("end");
+		} catch (IOException e) {
+			throw new RuntimeException(e.getMessage(), e.getCause());
+		}
 	}
 
 	private int getTypeSize() {
 		if (type.getName().equals(String.class.getName()))
 			return 64000;
 		if (type.getName().equals(Double.class.getName()))
-			return 8;
+			return 84;
 		if (type.getName().equals(Long.class.getName()))
-			return 8;
+			return 82;
 		throw new RuntimeException("type not found!");
 	}
 
@@ -49,84 +58,115 @@ public class Column {
 		ObjectOutputStream oos = new ObjectOutputStream(bos);
 		oos.writeObject(data);
 		oos.flush();
-		for (int i = 0; i < typeSize - bos.size(); i++) {
-			oos.write(NULL_BYTE);
-		}
-		oos.flush();
+		System.out.println(bos.toByteArray().length);
+		oos.close();
 		return bos.toByteArray();
 	}
 
+	private Object fromByte(byte[] value) throws IOException, ClassNotFoundException {
+		ByteArrayInputStream in = new ByteArrayInputStream(value);
+		ObjectInputStream is = new ObjectInputStream(in);
+		Object obj = is.readObject();
+		is.close();
+		return obj;
+	}
+
 	public int size() {
-		return cells.size();
+		// fixme: current is length in byte
+		try {
+			return (int) cells.length();
+		} catch (IOException e) {
+			throw new RuntimeException(e.getMessage(), e.getCause());
+		}
 	}
 
 	public Class type() {
-		return cells.get(0).getClass();
+		return type;
 	}
 
 	public Object get(Integer index) {
-		return cells.get(index);
+		byte[] value = new byte[getTypeSize()];
+		try {
+			cells.seek(index * getTypeSize());
+			System.out.println(cells.read(value,index * getTypeSize(), getTypeSize()));
+			return fromByte(value);
+		} catch (IOException | ClassNotFoundException e) {
+			throw new RuntimeException(e.getMessage(), e.getCause());
+		}
 	}
 
+	// fixme
 	public Set<Entry<Integer, Object>> entrySet() {
-		return cells.entrySet();
+		return null;
+//		return cells.entrySet();
 	}
 
+	// fixme
 	public Set<Integer> getIndexes(Object value) {
-		return cells.entrySet()
-				.stream()
-				.filter(entry -> entry.getValue().equals(value))
-				.map(Entry::getKey)
-				.collect(Collectors.toSet());
+		return null;
+//		return cells.entrySet()
+//				.stream()
+//				.filter(entry -> entry.getValue().equals(value))
+//				.map(Entry::getKey)
+//				.collect(Collectors.toSet());
 	}
 
+	// fixme remove it
 	public Column filterByIndexes(Set<Integer> indexes) {
-		Map<Integer, Object> filteredData = cells.entrySet()
-				.stream()
-				.filter(entry -> indexes.contains(entry.getKey()))
-				.collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
-		return new Column(filteredData);
+//		Map<Integer, Object> filteredData = cells.entrySet()
+//				.stream()
+//				.filter(entry -> indexes.contains(entry.getKey()))
+//				.collect(Collectors.toMap(entry -> entry.getKey(), entry -> entry.getValue()));
+//		return new Column(filteredData);
+		return null;
 	}
 
+	// fixme remove it
 	public void resetIndex() {
-		List<Object> data = cells.entrySet()
-				.stream()
-				.sorted(Entry.comparingByKey())
-				.map(Entry::getValue)
-				.collect(Collectors.toList());
-		LinkedHashMap<Integer, Object> newCell = new LinkedHashMap<>();
-		for (int idx = 0; idx < data.size(); idx++) {
-			newCell.put(idx, data.get(idx));
-		}
-		cells = newCell;
+//		List<Object> data = cells.entrySet()
+//				.stream()
+//				.sorted(Entry.comparingByKey())
+//				.map(Entry::getValue)
+//				.collect(Collectors.toList());
+//		LinkedHashMap<Integer, Object> newCell = new LinkedHashMap<>();
+//		for (int idx = 0; idx < data.size(); idx++) {
+//			newCell.put(idx, data.get(idx));
+//		}
+//		cells = newCell;
 	}
 
+	// fixme remove it
 	public List<Integer> getValueSortedKeyList() {
-		List<Entry<Integer, Object>> entrySet = new ArrayList<>(cells.entrySet());
-		entrySet.sort((Entry<Integer, Object> a, Entry<Integer, Object> b) -> {
-			Object valueA = a.getValue();
-			Object valueB = b.getValue();
-			if (valueA instanceof Double) {
-				return ((Double) valueA).compareTo((Double) valueB);
-			}
-			if (valueA instanceof Long) {
-				return ((Long) valueA).compareTo((Long) valueB);
-			}
-			return ((String) valueA).compareTo((String) valueB);
-		});
-		return entrySet.stream().map(Entry::getKey).collect(Collectors.toList());
+		return null;
+//		List<Entry<Integer, Object>> entrySet = new ArrayList<>(cells.entrySet());
+//		entrySet.sort((Entry<Integer, Object> a, Entry<Integer, Object> b) -> {
+//			Object valueA = a.getValue();
+//			Object valueB = b.getValue();
+//			if (valueA instanceof Double) {
+//				return ((Double) valueA).compareTo((Double) valueB);
+//			}
+//			if (valueA instanceof Long) {
+//				return ((Long) valueA).compareTo((Long) valueB);
+//			}
+//			return ((String) valueA).compareTo((String) valueB);
+//		});
+//		return entrySet.stream().map(Entry::getKey).collect(Collectors.toList());
 	}
 
+	// fixme: remove it
 	public Column generateColumnFromKeys(List<Integer> indexes) {
-		LinkedHashMap<Integer, Object> newColumnData = new LinkedHashMap<>();
-		for (int newIndex = 0; newIndex < indexes.size(); newIndex ++) {
-			Object newValue = indexes.get(newIndex) == null ? null : cells.get(indexes.get(newIndex));
-			newColumnData.put(newIndex, newValue);
-		}
-		return new Column(newColumnData);
+//		LinkedHashMap<Integer, Object> newColumnData = new LinkedHashMap<>();
+//		for (int newIndex = 0; newIndex < indexes.size(); newIndex ++) {
+//			Object newValue = indexes.get(newIndex) == null ? null : cells.get(indexes.get(newIndex));
+//			newColumnData.put(newIndex, newValue);
+//		}
+//		return new Column(newColumnData);
+		return null;
 	}
 
+	// fixme remove it
 	public Collection<Object> values() {
-		return cells.values();
+		return null;
+//		return cells.values();
 	}
 }

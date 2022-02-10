@@ -2,12 +2,14 @@ import static com.jobframe.core.ExpressionBuilder.*;
 
 import com.jobframe.core.Expression;
 import com.jobframe.core.JobFrame;
+import com.jobframe.core.JobFrames;
 import com.jobframe.core.Row;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -17,14 +19,8 @@ public class ExpressionTest {
     private JobFrame jobFrame;
 
     @BeforeEach
-    public void beforeA() {
-        List<List<Object>> datas = Arrays.asList(
-                Arrays.asList(1L, "hoang1", 10.0),
-                Arrays.asList(2L, "hoang2", 20.0),
-                Arrays.asList(3L, "hoang3", 30.0),
-                Arrays.asList(4L, "hoang4", 40.0)
-        );
-        jobFrame = new JobFrame(datas, Arrays.asList("id", "name", "value"));
+    public void beforeA() throws FileNotFoundException {
+        jobFrame = JobFrames.load("src/test/resources/first.csv", Arrays.asList("id", "name", "value"));
     }
 
     @Test
