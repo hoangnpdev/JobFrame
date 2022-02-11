@@ -27,7 +27,6 @@ public class LoadingCsvTest {
 	public void test_loadingCsv() throws FileNotFoundException {
 		firstFrame = JobFrames.load("src/test/resources/first.csv", Arrays.asList("id", "name", "value"));
 		Object out = firstFrame.at(0, "name");
-		System.out.println(out);
 		out.equals("hoang30");
 	}
 

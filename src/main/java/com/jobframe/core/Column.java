@@ -36,7 +36,6 @@ public class Column {
 			byte[] raw = toByte(data);
 			cells.seek(cells.length());
 			cells.write(raw);
-			System.out.println("end");
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage(), e.getCause());
 		}
@@ -58,7 +57,6 @@ public class Column {
 		ObjectOutputStream oos = new ObjectOutputStream(bos);
 		oos.writeObject(data);
 		oos.flush();
-		System.out.println(bos.toByteArray().length);
 		oos.close();
 		return bos.toByteArray();
 	}
@@ -88,7 +86,7 @@ public class Column {
 		byte[] value = new byte[getTypeSize()];
 		try {
 			cells.seek(index * getTypeSize());
-			System.out.println(cells.read(value,index * getTypeSize(), getTypeSize()));
+			System.out.println("No. byte read: " + cells.read(value,index * getTypeSize(), getTypeSize()));
 			return fromByte(value);
 		} catch (IOException | ClassNotFoundException e) {
 			throw new RuntimeException(e.getMessage(), e.getCause());

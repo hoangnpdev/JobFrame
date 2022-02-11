@@ -100,18 +100,23 @@ public class JobFrame {
 	public JobFrame eqAndGet(String columnName, Object value) {
 		JobFrame newJobFrame = new JobFrame();
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
-			Column column = d1.getColumn(columnName);
-			Set<Integer> indexes = column.getIndexes(value);
-			Map<String, Object> data = d1.getColumnMapper().entrySet()
-					.stream()
-					.collect(
-							Collectors.toMap(
-									Entry::getKey,
-								entry -> ((Column) entry.getValue()).filterByIndexes(indexes)
-							)
-					);
-			JobFrameData result = new JobFrameData(data);
-			result.resetIndex();
+			// init column Mapper and left column set
+			JobFrameData result = JobFrameData.ref(d1);
+
+			// init row left index
+			int i = 0;
+			int j = 0;
+			Map<Integer, Integer> leftIndex = new HashMap<>();
+			Iterator<Object> col = d1.columnAsIterator(columnName);
+			for (Iterator<Object> it = col; it.hasNext(); ) {
+				Object cell = it.next();
+				if (cell.equals(value)) {
+					leftIndex.put(i, j);
+					i ++;
+				}
+				j ++;
+			}
+			result.setRowLeftIndex(leftIndex);
 			return result;
 		};
 		newJobFrame.setParent(this);
