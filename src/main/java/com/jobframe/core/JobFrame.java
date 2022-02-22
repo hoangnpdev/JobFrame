@@ -49,8 +49,8 @@ public class JobFrame {
 	 * temp eager
 	 * @param data
 	 */
-	public JobFrame(Map<String, Object> data) {
-		this.jobFrameData = new JobFrameData(data);
+	public JobFrame(Map<String, Object> data, Integer size) {
+		this.jobFrameData = new JobFrameData(data, size);
 	}
 
 	public JobFrame() {

@@ -4,6 +4,8 @@ import org.apache.log4j.Logger;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class JobFrames {
 
@@ -17,20 +19,27 @@ public class JobFrames {
 		for (Class clazz: typeList) {
 			columnList.add(new Column(clazz));
 		}
+
+		// convert csv to randomAccessFile
+		AtomicInteger numberOfLine = new AtomicInteger(0);
 		bufferedReader.lines().forEach(line -> {
+			numberOfLine.incrementAndGet();
 			String[] value = line.split(",");
 			for (int i = 0; i < columnList.size(); i ++) {
 					columnList.get(i).append(
 							parse(value[i], typeList.get(i))
 					);
 			}
-
 		});
+
+		// create data for frame
 		Map<String, Object> columnMapper = new HashMap<>();
 		for (int i = 0; i < columnList.size(); i ++) {
 			columnMapper.put(headers.get(i), columnList.get(i));
 		}
-		return new JobFrame(columnMapper);
+
+		// todo: create row index
+		return new JobFrame(columnMapper, numberOfLine.get());
 	}
 
 	private static List<Class> findType(BufferedReader bufferedReader) {

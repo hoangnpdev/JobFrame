@@ -7,6 +7,8 @@ import org.jetbrains.annotations.Nullable;
 import java.io.FileNotFoundException;
 import java.io.RandomAccessFile;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class JobFrameData {
 
@@ -31,7 +33,12 @@ public class JobFrameData {
 	}
 
 	public JobFrameData(Map<String, Object> columnMapper) {
+		throw new UnsupportedOperationException("temp for code");
+	}
+
+	public JobFrameData(Map<String, Object> columnMapper, Integer size) {
 		this.columnMapper = columnMapper;
+		this.rowLeftIndex = new MirrorMap(size);
 	}
 
 	public static JobFrameData ref(JobFrameData prev) {
@@ -103,7 +110,7 @@ public class JobFrameData {
 		return ((Column) columnMapper.entrySet().stream().findFirst().get().getValue()).size();
 	}
 
-	public static class MirrorMap<K, V> implements Map<K, V> {
+	public static class MirrorMap implements Map<Integer, Integer> {
 
 		private int size;
 
@@ -118,61 +125,75 @@ public class JobFrameData {
 
 		@Override
 		public boolean isEmpty() {
+			if (size < 1) {
+				return true;
+			}
 			return false;
 		}
 
 		@Override
 		public boolean containsKey(Object key) {
+			Integer k = (int) key;
+			if (k < size) {
+				return true;
+			}
 			return false;
 		}
 
 		@Override
 		public boolean containsValue(Object value) {
+			Integer v = (int) value;
+			if (v < size) {
+				return true;
+			}
 			return false;
 		}
 
 		@Override
-		public V get(Object key) {
-			return null;
+		public Integer get(Object key) {
+			return (Integer) key;
 		}
+
 
 		@Nullable
 		@Override
-		public V put(K key, V value) {
-			return null;
+		public Integer put(Integer key, Integer value) {
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public V remove(Object key) {
-			return null;
+		public Integer remove(Object key) {
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void putAll(@NotNull Map<? extends K, ? extends V> m) {
-
+		public void putAll(@NotNull Map<? extends Integer, ? extends Integer> m) {
+			throw new UnsupportedOperationException();
 		}
 
 		@Override
 		public void clear() {
-
+			throw new UnsupportedOperationException();
 		}
 
 		@NotNull
 		@Override
-		public Set<K> keySet() {
-			return null;
+		public Set<Integer> keySet() {
+			return IntStream.range(0, size).boxed().collect(Collectors.toSet());
 		}
 
 		@NotNull
 		@Override
-		public Collection<V> values() {
-			return null;
+		public Collection<Integer> values() {
+			return IntStream.range(0, size).boxed().collect(Collectors.toSet());
 		}
 
 		@NotNull
 		@Override
-		public Set<Entry<K, V>> entrySet() {
-			return null;
+		public Set<Entry<Integer, Integer>> entrySet() {
+			return IntStream.range(0, size).boxed()
+					.map(i -> new AbstractMap.SimpleEntry<>(i, i))
+					.collect(Collectors.toSet());
 		}
 	}
 }
