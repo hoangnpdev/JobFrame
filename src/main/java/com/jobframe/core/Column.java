@@ -11,6 +11,8 @@ public class Column {
 
 	private static byte[] NULL_BYTE = DatatypeConverter.parseHexBinary("00");
 
+	private String tmpName;
+
 	private Class type;
 
 	private RandomAccessFile cells;
@@ -22,14 +24,24 @@ public class Column {
 
 	public Column(Class clazz) throws FileNotFoundException {
 		String tmpName = UUID.randomUUID().toString();
+		this.tmpName = tmpName;
 		cells = new RandomAccessFile("tmp/" + tmpName + ".col", "rw");
 		this.type = clazz;
 	}
 
-	public Column(RandomAccessFile randomAccessFile, Class clazz) {
+	public Column(RandomAccessFile randomAccessFile, Class clazz, String tmpName) {
+		this.tmpName = tmpName;
 		cells = randomAccessFile;
 		this.type = clazz;
 	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		cells.close();
+		new File("tmp/" + tmpName + ".col").deleteOnExit();
+	}
+
 
 	public void append(Object data) {
 		try {

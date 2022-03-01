@@ -52,8 +52,8 @@ public class JobFrameData {
 		return newFrame;
 	}
 
-	public void addColumn(String columnName, RandomAccessFile randomAccessFile, Class type) throws FileNotFoundException {
-		columnMapper.put(columnName, new Column(randomAccessFile, type));
+	public void addColumn(String columnName, RandomAccessFile randomAccessFile, Class type, String tmpName) throws FileNotFoundException {
+		columnMapper.put(columnName, new Column(randomAccessFile, type, tmpName));
 	}
 
 	public Iterator<Object> columnAsIterator(String columnName) {

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class ExpressionTest {
     private JobFrame jobFrame;
 
     @BeforeEach
-    public void beforeA() throws FileNotFoundException {
+    public void beforeA() throws IOException {
         jobFrame = JobFrames.load("src/test/resources/first.csv", Arrays.asList("id", "name", "value"));
     }
 

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Arrays;
 
 import static com.jobframe.core.ExpressionBuilder.*;
@@ -30,7 +31,7 @@ public class JobFrameBasicTest {
 	private JobFrame groupFrame;
 
 	@BeforeEach
-	public void beforeA() throws FileNotFoundException {
+	public void beforeA() throws IOException {
 		firstFrame = JobFrames.load("src/test/resources/first.csv", Arrays.asList("id", "name", "value"));
 
 		secondFrame = JobFrames.load("src/test/resources/second.csv", Arrays.asList("id", "name", "value"));
@@ -53,6 +54,10 @@ public class JobFrameBasicTest {
 	public void test_getValueAt() {
 		Object data = firstFrame.at(0, "name");
 		assert data.equals("hoang1");
+	}
+
+	public static void log(Object data) {
+		System.out.println(data);
 	}
 
 	@Test

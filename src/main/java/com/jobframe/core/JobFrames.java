@@ -11,10 +11,10 @@ public class JobFrames {
 
 	private static Logger log = Logger.getLogger(JobFrames.class);
 
-	public static JobFrame load(String csvPath, List<String> headers) throws FileNotFoundException {
+	public static JobFrame load(String csvPath, List<String> headers) throws IOException {
 		mkdirs("tmp");
 		BufferedReader bufferedReader = new BufferedReader(new FileReader(csvPath));
-		List<Class> typeList = findType(bufferedReader);
+		List<Class> typeList = findType(new BufferedReader(new FileReader(csvPath)));
 		List<Column> columnList = new ArrayList<>();
 		for (Class clazz: typeList) {
 			columnList.add(new Column(clazz));
@@ -26,6 +26,7 @@ public class JobFrames {
 			numberOfLine.incrementAndGet();
 			String[] value = line.split(",");
 			for (int i = 0; i < columnList.size(); i ++) {
+
 					columnList.get(i).append(
 							parse(value[i], typeList.get(i))
 					);
@@ -42,7 +43,7 @@ public class JobFrames {
 		return new JobFrame(columnMapper, numberOfLine.get());
 	}
 
-	private static List<Class> findType(BufferedReader bufferedReader) {
+	private static List<Class> findType(BufferedReader bufferedReader) throws IOException {
 		Optional<String> firstLine = bufferedReader.lines().findFirst();
 		if (!firstLine.isPresent()) {
 			throw new RuntimeException("cant not parse data");
@@ -54,6 +55,7 @@ public class JobFrames {
 		for (String value: values) {
 			typeList.add(getType(value));
 		}
+		bufferedReader.close();
 		return typeList;
 	}
 
