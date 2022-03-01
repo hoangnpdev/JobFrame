@@ -39,13 +39,14 @@ public class Column {
 	protected void finalize() throws Throwable {
 		super.finalize();
 		cells.close();
-		new File("tmp/" + tmpName + ".col").deleteOnExit();
+		System.out.println("Del file: " + new File("tmp/" + tmpName + ".col").delete());
 	}
 
 
 	public void append(Object data) {
 		try {
 			byte[] raw = toByte(data);
+			System.out.println(raw.length);
 			cells.seek(cells.length());
 			cells.write(raw);
 		} catch (IOException e) {

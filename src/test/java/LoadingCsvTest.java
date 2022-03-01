@@ -28,15 +28,38 @@ public class LoadingCsvTest {
 	public void test_loadingCsv() throws IOException {
 		firstFrame = JobFrames.load("src/test/resources/first.csv", Arrays.asList("id", "name", "value"));
 		Object out = firstFrame.at(0, "name");
-		out.equals("hoang30");
+		System.out.println(out);
+		assert out.equals("hoang30");
 	}
 
 	@Test
 	public void test_column() throws FileNotFoundException {
 		Column col = new Column(String.class);
 		col.append("hoangnp");
+		log("size: " + col.size());
+		col.append("hoangnp2");
+		log("size: " + col.size());
+		col.append("hoangnp3");
+		log("size: " + col.size());
+
+
 		Object obj = col.get(0);
+		System.out.println(obj);
 		assert obj.equals("hoangnp");
+
+
+		Object obj2 = col.get(1);
+		System.out.println(obj2);
+		assert obj.equals("hoangnp2");
+
+
+		Object obj3 = col.get(2);
+		System.out.println(obj3);
+		assert obj3.equals("hoangnp3");
+	}
+
+	public static void log(Object d) {
+		System.out.println(d);
 	}
 
 }

@@ -12,6 +12,7 @@ public class JobFrames {
 	private static Logger log = Logger.getLogger(JobFrames.class);
 
 	public static JobFrame load(String csvPath, List<String> headers) throws IOException {
+		log(csvPath);
 		mkdirs("tmp");
 		BufferedReader bufferedReader = new BufferedReader(new FileReader(csvPath));
 		List<Class> typeList = findType(new BufferedReader(new FileReader(csvPath)));
@@ -30,8 +31,12 @@ public class JobFrames {
 					columnList.get(i).append(
 							parse(value[i], typeList.get(i))
 					);
+
 			}
 		});
+		Column col = columnList.get(1);
+		System.out.println(col.get(0));
+//		System.out.println(col.get(0) + " " + col.get(1) + " " +  col.get(2));
 
 		// create data for frame
 		Map<String, Object> columnMapper = new HashMap<>();

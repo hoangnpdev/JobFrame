@@ -64,6 +64,7 @@ public class JobFrameBasicTest {
 	public void test_eqAndGet() {
 		JobFrame eqFrame = firstFrame.eqAndGet("name", "hoang3");
 		assert eqFrame.at(0, "value").equals(30.0);
+
 	}
 
 	@Test
