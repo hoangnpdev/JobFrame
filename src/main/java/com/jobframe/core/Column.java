@@ -46,7 +46,7 @@ public class Column {
 	public void append(Object data) {
 		try {
 			byte[] raw = toByte(data);
-			System.out.println(raw.length);
+//			System.out.println(raw.length);
 			cells.seek(cells.length());
 			cells.write(raw);
 		} catch (IOException e) {
@@ -71,7 +71,7 @@ public class Column {
 		oos.writeObject(data);
 		oos.flush();
 		oos.close();
-		return bos.toByteArray();
+		return Arrays.copyOf(bos.toByteArray(), typeSize);
 	}
 
 	private Object fromByte(byte[] value) throws IOException, ClassNotFoundException {
@@ -99,7 +99,8 @@ public class Column {
 		byte[] value = new byte[getTypeSize()];
 		try {
 			cells.seek(index * getTypeSize());
-			System.out.println("No. byte read: " + cells.read(value,index * getTypeSize(), getTypeSize()));
+//			System.out.println("No. byte read: " );
+			cells.read(value,0, getTypeSize());
 			return fromByte(value);
 		} catch (IOException | ClassNotFoundException e) {
 			throw new RuntimeException(e.getMessage(), e.getCause());

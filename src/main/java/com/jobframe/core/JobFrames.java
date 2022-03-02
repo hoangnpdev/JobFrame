@@ -34,8 +34,8 @@ public class JobFrames {
 
 			}
 		});
-		Column col = columnList.get(1);
-		System.out.println(col.get(0));
+//		Column col = columnList.get(1);
+//		System.out.println(col.get(0));
 //		System.out.println(col.get(0) + " " + col.get(1) + " " +  col.get(2));
 
 		// create data for frame
