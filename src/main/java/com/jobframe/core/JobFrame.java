@@ -144,26 +144,35 @@ public class JobFrame {
 		JobFrame newJobFrame = new JobFrame();
 
 		BiFunction<JobFrameData, JobFrameData, JobFrameData> transform = (JobFrameData d1, JobFrameData d2) -> {
-			Map<String, Object> joinData = new HashMap<>();
-
-			List<Entry<Integer, Integer>> commonKeys = getCommonKeys(d1, d2, how, joinType);
-
-			List<Integer> rightKeyList = commonKeys.stream()
-					.map(Entry::getValue)
-					.collect(Collectors.toList());
-			d2.getColumnMapper().forEach((key, value) -> {
-				Column column = ((Column) value).generateColumnFromKeys(rightKeyList);
-				joinData.put(key, column);
+			Map<String, Object> joinColumnMapper = new HashMap<>();
+			// generate column mapper
+			d1.getColumnMapper().forEach((k, v) -> {
+				joinColumnMapper.put(k, d1);
+			});
+			d2.getColumnMapper().forEach((k, v) -> {
+				joinColumnMapper.put(k, d2);
 			});
 
-			List<Integer> leftKeyList = commonKeys.stream()
-					.map(Entry::getKey)
-					.collect(Collectors.toList());
-			d1.getColumnMapper().forEach((key, value) -> {
-				Column column = ((Column) value).generateColumnFromKeys(leftKeyList);
-				joinData.put(key, column);
-			});
-			return new JobFrameData(joinData);
+			// generate leftColumnSet
+			Set<String> rightSet = d2.getColumnMapper().keySet();
+			Set<String> leftSet = d1.getColumnMapper().keySet();
+			Set<String> joinColumnSet = leftSet.stream().filter(e -> !rightSet.contains(e)).collect(Collectors.toSet());
+
+
+			// generate indexing between JobFrameData instances
+			Iterator<Entry<Integer, Integer>> matchedKeyPairs = getMatchedKeyPairs(d1, d2, how, joinType);
+			Map<Integer, Integer> rowLeftIndex = new HashMap<>();
+			Map<Integer, Integer> rowRightIndex = new HashMap<>();
+			int newKey = 0;
+			while (matchedKeyPairs.hasNext()) {
+				Entry<Integer, Integer> keyPair = matchedKeyPairs.next();
+				rowLeftIndex.put(newKey, keyPair.getKey());
+				rowRightIndex.put(newKey, keyPair.getValue());
+				newKey ++;
+			}
+
+			return new JobFrameData(joinColumnMapper, joinColumnSet,
+					rowLeftIndex, rowRightIndex);
 		};
 
 		newJobFrame.setParent(this);
@@ -172,32 +181,35 @@ public class JobFrame {
 		return newJobFrame;
 	}
 
-	private List<Entry<Integer, Integer>> getCommonKeys(
+	private Iterator<Entry<Integer, Integer>> getMatchedKeyPairs(
 			JobFrameData d1, JobFrameData d2,
 			String how, String joinType
 	) {
-		List<Column> leftColumnList = new ArrayList<>();
-		List<Column> rightColumnList = new ArrayList<>();
+		List<String> leftColumnList = new ArrayList<>();
+		List<String> rightColumnList = new ArrayList<>();
 
 		// get pair list
 		String[] keyPairList = how.split(";");
 		for (String keyPair: keyPairList) {
 			String[] keys = keyPair.split("=");
-			leftColumnList.add(d1.getColumn(keys[0].trim()));
-			rightColumnList.add(d2.getColumn(keys[1].trim()));
+			leftColumnList.add(keys[0].trim());
+			rightColumnList.add(keys[1].trim());
 		}
 
 		// get common keys
-		return findCommonKeysByJoinType(leftColumnList, rightColumnList, joinType);
+		return findMatchedKeyPairsByJoinType(d1, d2, leftColumnList, rightColumnList, joinType);
 	}
 
-	private List<Entry<Integer, Integer>> findCommonKeysByJoinType(
-			List<Column> leftColumnList,
-			List<Column> rightColumnList,
+	private Iterator<Entry<Integer, Integer>> findMatchedKeyPairsByJoinType(
+			JobFrameData leftData, JobFrameData rightData,
+			List<String> leftColumnList, List<String> rightColumnList,
 			String joinType
 	) {
 		if (joinType.equals("inner")) {
-			return findInnerCommonKey(leftColumnList, rightColumnList);
+			return findInnerMatchedKeyPairs(
+					leftData, rightData,
+					leftColumnList, rightColumnList
+			);
 		}
 		if (joinType.equals("left")) {
 			return findLeftCommonKey(leftColumnList, rightColumnList);
@@ -220,8 +232,9 @@ public class JobFrame {
 		return result;
 	}
 
-	private List<Entry<Integer, Integer>> findInnerCommonKey(
-			List<Column> leftColumnList, List<Column> rightColumnList
+	private Iterator<Entry<Integer, Integer>> findInnerMatchedKeyPairs (
+			JobFrameData leftData, JobFrameData rightData,
+			List<String> leftColumnList, List<String> rightColumnList
 	) {
 		List<Entry<Integer, Integer>> result = new LinkedList<>();
 		int leftSize = leftColumnList.get(0).size();

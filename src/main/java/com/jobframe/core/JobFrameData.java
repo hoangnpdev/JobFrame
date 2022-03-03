@@ -12,13 +12,10 @@ import java.util.stream.IntStream;
 
 public class JobFrameData {
 
-	// data
-
+	// data: Object is Column or JobFrameData
 	private Map<String, Object> columnMapper;
 
 	private Set<String> leftColumnSet;
-
-	private Set<String> rightColumnSet;
 
 	@Setter
 	private Map<Integer, Integer> rowLeftIndex; // todo: caching this
@@ -28,7 +25,7 @@ public class JobFrameData {
 
 	// logic
 
-	public JobFrameData() {
+	private JobFrameData() {
 		columnMapper = new HashMap<>();
 	}
 
@@ -39,6 +36,14 @@ public class JobFrameData {
 	public JobFrameData(Map<String, Object> columnMapper, Integer size) {
 		this.columnMapper = columnMapper;
 		this.rowLeftIndex = new MirrorMap(size);
+	}
+
+	public JobFrameData(Map<String, Object> columnMapper, Set<String> leftColumnSet,
+						Map<Integer, Integer> rowLeftIndex, Map<Integer, Integer> rowRightIndex) {
+		this.columnMapper = columnMapper;
+		this.leftColumnSet = leftColumnSet;
+		this.rowLeftIndex = rowLeftIndex;
+		this.rowRightIndex = rowRightIndex;
 	}
 
 	public static JobFrameData ref(JobFrameData prev) {
@@ -63,7 +68,7 @@ public class JobFrameData {
 				.iterator();
 	}
 
-	// fixme remove it
+	@Deprecated
 	public Column getColumn(String columnName) {
 		return (Column) columnMapper.get(columnName);
 	}
