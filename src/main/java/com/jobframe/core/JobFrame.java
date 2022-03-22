@@ -3,6 +3,8 @@ package com.jobframe.core;
 import com.jobframe.udf.define.UDF1;
 import com.jobframe.udf.define.UDF2;
 import com.jobframe.udf.define.UDF3;
+import com.jobframe.util.Int2DStream;
+import com.jobframe.util.Pair;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -161,14 +163,14 @@ public class JobFrame {
 
 
 			// generate indexing between JobFrameData instances
-			Iterator<Entry<Integer, Integer>> matchedKeyPairs = getMatchedKeyPairs(d1, d2, how, joinType);
+			Iterator<Pair<Integer, Integer>> matchedKeyPairs = getMatchedKeyPairs(d1, d2, how, joinType);
 			Map<Integer, Integer> rowLeftIndex = new HashMap<>();
 			Map<Integer, Integer> rowRightIndex = new HashMap<>();
 			int newKey = 0;
 			while (matchedKeyPairs.hasNext()) {
-				Entry<Integer, Integer> keyPair = matchedKeyPairs.next();
-				rowLeftIndex.put(newKey, keyPair.getKey());
-				rowRightIndex.put(newKey, keyPair.getValue());
+				Pair<Integer, Integer> keyPair = matchedKeyPairs.next();
+				rowLeftIndex.put(newKey, keyPair.getLeft());
+				rowRightIndex.put(newKey, keyPair.getRight());
 				newKey ++;
 			}
 
@@ -182,7 +184,7 @@ public class JobFrame {
 		return newJobFrame;
 	}
 
-	private Iterator<Entry<Integer, Integer>> getMatchedKeyPairs(
+	private Iterator<Pair<Integer, Integer>> getMatchedKeyPairs(
 			JobFrameData d1, JobFrameData d2,
 			String how, String joinType
 	) {
@@ -201,7 +203,7 @@ public class JobFrame {
 		return findMatchedKeyPairsByJoinType(d1, d2, leftColumnList, rightColumnList, joinType);
 	}
 
-	private Iterator<Entry<Integer, Integer>> findMatchedKeyPairsByJoinType(
+	private Iterator<Pair<Integer, Integer>> findMatchedKeyPairsByJoinType(
 			JobFrameData leftData, JobFrameData rightData,
 			List<String> leftColumnList, List<String> rightColumnList,
 			String joinType
@@ -233,27 +235,19 @@ public class JobFrame {
 		return result;
 	}
 
-	private Iterator<Entry<Integer, Integer>> findInnerMatchedKeyPairs (
+	private Iterator<Pair<Integer, Integer>> findInnerMatchedKeyPairs (
 			JobFrameData leftData, JobFrameData rightData,
 			List<String> leftColumnList, List<String> rightColumnList
 	) {
 		List<Entry<Integer, Integer>> result = new LinkedList<>();
 		int leftSize = leftData.size();
 		int rightSize = rightData.size();
-		IntStream.range(0, leftSize * rightSize)
-				.boxed()
-				.map(k -> {
-					int i = k / rightSize ;
-					int j = k % rightSize ;
-					if (isMatch(i, j, leftData, rightData, leftColumnList, rightColumnList)) {
-						result.add(
-								new AbstractMap.SimpleEntry<>(i, j)
-						);
-					}
-					return result;
-				});
-		// convert this to iterator
-		return null;
+		return Int2DStream.shape(leftSize, rightSize, (i, j) -> {
+			if (isMatch(i, j, leftData, rightData, leftColumnList, rightColumnList)) {
+				return Pair.of(i, j);
+			}
+			return null;
+		}).iterator();
 	}
 
 	private List<Entry<Integer, Integer>> findLeftCommonKey(

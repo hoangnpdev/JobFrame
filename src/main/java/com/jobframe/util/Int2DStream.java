@@ -1,5 +1,6 @@
 package com.jobframe.util;
 
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -13,6 +14,7 @@ public class Int2DStream {
                     int ix = idx / y;
                     int iy = idx % y;
                     return mapper.apply(ix, iy);
-                });
+                })
+                .filter(Objects::nonNull);
     }
 }
