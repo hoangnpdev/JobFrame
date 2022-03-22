@@ -1,3 +1,5 @@
+package test.jobframe;
+
 import com.jobframe.core.Column;
 import com.jobframe.core.JobFrame;
 import com.jobframe.core.JobFrames;
@@ -14,9 +16,9 @@ import java.util.Arrays;
 
 
 @ExtendWith(MockitoExtension.class)
-public class LoadingCsvTest {
+public class JobFramesTest {
 
-	private static Logger log = Logger.getLogger(LoadingCsvTest.class);
+	private static Logger log = Logger.getLogger(JobFramesTest.class);
 
 	private JobFrame firstFrame;
 

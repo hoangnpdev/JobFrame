@@ -11,6 +11,7 @@ import java.util.*;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.Map.Entry;
+import java.util.stream.IntStream;
 
 public class JobFrame {
 
@@ -211,22 +212,22 @@ public class JobFrame {
 					leftColumnList, rightColumnList
 			);
 		}
-		if (joinType.equals("left")) {
-			return findLeftCommonKey(leftColumnList, rightColumnList);
-		}
-		if (joinType.equals("full")) {
-			return findFullCommonKey(leftColumnList, rightColumnList);
-		}
+//		if (joinType.equals("left")) {
+//			return findLeftCommonKey(leftColumnList, rightColumnList);
+//		}
+//		if (joinType.equals("full")) {
+//			return findFullCommonKey(leftColumnList, rightColumnList);
+//		}
 		throw new RuntimeException("Join type - " + joinType + " not found! ");
 	}
 
-	private boolean isMatch(int lid, int rid, List<Column> leftColumnList, List<Column> rightColumnList) {
+	private boolean isMatch(int lid, int rid, JobFrameData leftData, JobFrameData rightData, List<String> leftColumnList, List<String> rightColumnList) {
 		boolean result = true;
 		int nCol = leftColumnList.size();
 		assert nCol == rightColumnList.size();
 		for (int i = 0; i < nCol; i ++) {
-			result = result && leftColumnList.get(i).get(lid).equals(
-					rightColumnList.get(i).get(rid)
+			result = result && leftData.at(lid, leftColumnList.get(i)).equals(
+					rightData.at(rid, rightColumnList.get(i))
 			);
 		}
 		return result;
@@ -237,18 +238,22 @@ public class JobFrame {
 			List<String> leftColumnList, List<String> rightColumnList
 	) {
 		List<Entry<Integer, Integer>> result = new LinkedList<>();
-		int leftSize = leftColumnList.get(0).size();
-		int rightSize = rightColumnList.get(0).size();
-		for (int i = 0; i < leftSize; i ++) {
-			for (int j = 0; j < rightSize; j ++ ) {
-				if (isMatch(i, j, leftColumnList, rightColumnList)) {
-					result.add(
-							new AbstractMap.SimpleEntry<>(i, j)
-					);
-				}
-			}
-		}
-		return result;
+		int leftSize = leftData.size();
+		int rightSize = rightData.size();
+		IntStream.range(0, leftSize * rightSize)
+				.boxed()
+				.map(k -> {
+					int i = k / rightSize ;
+					int j = k % rightSize ;
+					if (isMatch(i, j, leftData, rightData, leftColumnList, rightColumnList)) {
+						result.add(
+								new AbstractMap.SimpleEntry<>(i, j)
+						);
+					}
+					return result;
+				});
+		// convert this to iterator
+		return null;
 	}
 
 	private List<Entry<Integer, Integer>> findLeftCommonKey(
@@ -260,7 +265,7 @@ public class JobFrame {
 		for (int i = 0; i < leftSize; i ++) {
 			List<Entry<Integer, Integer>> matchedJoin = new LinkedList<>();
 			for (int j = 0; j < rightSize; j ++ ) {
-				if (isMatch(i, j, leftColumnList, rightColumnList)) {
+				if (isMatch(i, j, null, null, null, null)) {
 					matchedJoin.add(
 							new AbstractMap.SimpleEntry<>(i, j)
 					);
@@ -289,7 +294,7 @@ public class JobFrame {
 		for (int i = 0; i < leftSize; i ++) {
 			List<Entry<Integer, Integer>> matchedJoin = new LinkedList<>();
 			for (int j = 0; j < rightSize; j ++ ) {
-				if (isMatch(i, j, leftColumnList, rightColumnList)) {
+				if (isMatch(i, j, null, null, null, null)) {
 					matchedJoin.add(
 							new AbstractMap.SimpleEntry<>(i, j)
 					);

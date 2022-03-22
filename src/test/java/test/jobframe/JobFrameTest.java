@@ -1,3 +1,4 @@
+package test.jobframe;
 
 import com.jobframe.core.Column;
 import com.jobframe.core.JobFrame;
@@ -8,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -16,9 +16,9 @@ import static com.jobframe.core.ExpressionBuilder.*;
 
 
 @ExtendWith(MockitoExtension.class)
-public class JobFrameBasicTest {
+public class JobFrameTest {
 
-	private static Logger log = Logger.getLogger(JobFrameBasicTest.class);
+	private static Logger log = Logger.getLogger(JobFrameTest.class);
 
 	private JobFrame firstFrame;
 

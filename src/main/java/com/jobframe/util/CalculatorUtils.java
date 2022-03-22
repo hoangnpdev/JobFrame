@@ -1,6 +1,4 @@
-package com.jobframe.utils;
-
-import java.util.stream.Collectors;
+package com.jobframe.util;
 
 public class CalculatorUtils {
 

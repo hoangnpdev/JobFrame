@@ -1,4 +1,4 @@
-package com.jobframe.utils;
+package com.jobframe.util;
 
 public class TypeUtils {
 

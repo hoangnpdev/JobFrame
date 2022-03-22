@@ -1,3 +1,5 @@
+package test.jobframe;
+
 import static com.jobframe.core.ExpressionBuilder.*;
 
 import com.jobframe.core.Expression;

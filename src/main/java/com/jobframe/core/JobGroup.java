@@ -1,12 +1,11 @@
 package com.jobframe.core;
 
-import com.jobframe.utils.CalculatorUtils;
+import com.jobframe.util.CalculatorUtils;
 import lombok.Setter;
 
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
-import java.util.stream.Collectors;
 
 public class JobGroup {
 

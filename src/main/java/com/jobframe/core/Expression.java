@@ -1,6 +1,6 @@
 package com.jobframe.core;
 
-import com.jobframe.utils.CalculatorUtils;
+import com.jobframe.util.CalculatorUtils;
 
 public class Expression {
 
